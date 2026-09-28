@@ -239,7 +239,138 @@ function OrbitalRings({ scrollProgress }: { scrollProgress: React.MutableRefObje
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// Camera controller — responds to mouse + scroll
+// Connected Knowledge Lattice — Restrained 3D Neural / Systems Metaphor for About
+// ────────────────────────────────────────────────────────────────────────────
+function ConnectedKnowledgeLattice({
+  scrollProgress,
+}: {
+  scrollProgress: React.MutableRefObject<number>;
+}) {
+  const groupRef = useRef<THREE.Group>(null!);
+
+  const { nodePositions, lineIndices } = useMemo(() => {
+    const rawNodes = [
+      [0.0, 1.2, 0.0],
+      [-1.4, 0.6, 0.4],
+      [1.3, 0.8, -0.3],
+      [-0.8, -0.5, 0.8],
+      [1.1, -0.4, 0.5],
+      [-1.8, -1.2, -0.5],
+      [0.2, -1.4, -0.2],
+      [1.7, -1.0, -0.8],
+      [-0.3, 2.0, -0.6],
+      [1.5, 1.8, 0.4],
+      [-2.1, 0.2, 0.6],
+      [2.2, 0.1, -0.5],
+      [-0.5, -2.1, 0.3],
+      [0.9, -2.3, -0.4],
+    ];
+
+    const lines: number[] = [];
+    for (let i = 0; i < rawNodes.length; i++) {
+      for (let j = i + 1; j < rawNodes.length; j++) {
+        const dx = rawNodes[i][0] - rawNodes[j][0];
+        const dy = rawNodes[i][1] - rawNodes[j][1];
+        const dz = rawNodes[i][2] - rawNodes[j][2];
+        const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (dist < 2.0) {
+          lines.push(i, j);
+        }
+      }
+    }
+
+    return {
+      nodePositions: rawNodes.map((p) => new THREE.Vector3(p[0], p[1], p[2])),
+      lineIndices: lines,
+    };
+  }, []);
+
+  const lineGeometry = useMemo(() => {
+    const points: THREE.Vector3[] = [];
+    for (let k = 0; k < lineIndices.length; k += 2) {
+      points.push(nodePositions[lineIndices[k]]);
+      points.push(nodePositions[lineIndices[k + 1]]);
+    }
+    return new THREE.BufferGeometry().setFromPoints(points);
+  }, [nodePositions, lineIndices]);
+
+  useFrame((state) => {
+    if (!groupRef.current) return;
+    const t = state.clock.getElapsedTime();
+    const sp = scrollProgress.current;
+
+    // About section envelope: smoothly blossoms in around 0.05, reaches full presence around 0.12 - 0.22
+    let envelope = 0;
+    if (sp < 0.04) {
+      envelope = 0;
+    } else if (sp < 0.10) {
+      envelope = (sp - 0.04) / 0.06;
+    } else if (sp < 0.24) {
+      envelope = 1.0;
+    } else if (sp < 0.34) {
+      envelope = Math.max(0, 1.0 - (sp - 0.24) / 0.10);
+    } else {
+      envelope = 0;
+    }
+
+    // Positioned in right/center depth to complement left-side editorial text
+    groupRef.current.position.x = 1.8 + Math.sin(t * 0.15) * 0.15;
+    groupRef.current.position.y = -0.3 + Math.cos(t * 0.12) * 0.15;
+    groupRef.current.position.z = -0.5;
+
+    // Rotation
+    groupRef.current.rotation.y = t * 0.08 + sp * Math.PI * 0.8;
+    groupRef.current.rotation.x = Math.sin(t * 0.06) * 0.12;
+
+    const currentScale = envelope * 1.25;
+    groupRef.current.scale.setScalar(currentScale);
+    groupRef.current.visible = envelope > 0.01;
+  });
+
+  return (
+    <group ref={groupRef}>
+      {/* Synapse line connections */}
+      <lineSegments geometry={lineGeometry}>
+        <lineBasicMaterial
+          color="#FF9812"
+          transparent
+          opacity={0.4}
+          linewidth={1}
+        />
+      </lineSegments>
+
+      {/* Nodes: small glowing icosahedrons */}
+      {nodePositions.map((pos, idx) => (
+        <group key={idx} position={pos}>
+          <mesh>
+            <icosahedronGeometry args={[0.07 + (idx % 3) * 0.02, 1]} />
+            <meshStandardMaterial
+              color={idx % 3 === 0 ? '#FF9812' : idx % 3 === 1 ? '#FFD700' : '#FFB347'}
+              emissive={idx % 2 === 0 ? '#FF6600' : '#E8820A'}
+              emissiveIntensity={1.3}
+              metalness={0.85}
+              roughness={0.1}
+            />
+          </mesh>
+          {idx % 4 === 0 && (
+            <mesh>
+              <icosahedronGeometry args={[0.15, 1]} />
+              <meshBasicMaterial
+                color="#FFB347"
+                wireframe
+                transparent
+                opacity={0.45}
+              />
+            </mesh>
+          )}
+        </group>
+      ))}
+    </group>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Camera controller — choreographs camera back and around for About storytelling
 // ────────────────────────────────────────────────────────────────────────────
 function CameraController({
   mouseRef,
@@ -253,17 +384,32 @@ function CameraController({
     const mx = mouseRef.current.x;
     const my = mouseRef.current.y;
 
-    // Camera pulls back on scroll
-    const targetZ = 5 + sp * 4;
-    const targetY = -sp * 1.5 + my * -1.2;
-    const targetX = mx * 1.0;
+    let targetX = mx * 0.9;
+    let targetY = my * -0.9;
+    let targetZ = 5.0;
 
-    state.camera.position.x += (targetX - state.camera.position.x) * 0.04;
-    state.camera.position.y += (targetY - state.camera.position.y) * 0.04;
-    state.camera.position.z += (targetZ - state.camera.position.z) * 0.04;
+    if (sp < 0.06) {
+      // Hero view: direct front angle
+      targetZ = 5.0 + sp * 8.0;
+      targetY = -sp * 2.0 + my * -1.0;
+    } else if (sp < 0.24) {
+      // About Section: camera pulls back and pivots, opening space for name & story
+      const progressInAbout = (sp - 0.06) / 0.18;
+      targetX = mx * 0.8 + 0.35 * Math.sin(progressInAbout * Math.PI);
+      targetY = -1.2 - progressInAbout * 0.8 + my * -0.7;
+      targetZ = 6.0 + progressInAbout * 1.5;
+    } else {
+      // Subsequent sections
+      targetZ = 7.5 + (sp - 0.24) * 3.5;
+      targetY = -2.0 - (sp - 0.24) * 1.8 + my * -0.8;
+      targetX = mx * 0.8;
+    }
 
-    // Camera looks at a drifting point
-    const lookY = -sp * 1.0;
+    state.camera.position.x += (targetX - state.camera.position.x) * 0.045;
+    state.camera.position.y += (targetY - state.camera.position.y) * 0.045;
+    state.camera.position.z += (targetZ - state.camera.position.z) * 0.045;
+
+    const lookY = sp < 0.06 ? 0 : -0.7 * (sp / 0.3);
     state.camera.lookAt(0, lookY, 0);
   });
   return null;
@@ -319,6 +465,7 @@ export const WorldScene: React.FC<WorldSceneProps> = ({ scrollProgress, mouseRef
       <OrangeBlob scrollProgress={scrollProgress} />
       <TwistedRibbons scrollProgress={scrollProgress} />
       <OrbitalRings scrollProgress={scrollProgress} />
+      <ConnectedKnowledgeLattice scrollProgress={scrollProgress} />
       <ParticleField scrollProgress={scrollProgress} />
 
       {/* Camera controller */}

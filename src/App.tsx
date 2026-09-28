@@ -8,7 +8,9 @@ import { WorkSection }          from './components/sections/WorkSection';
 import { ExperienceSection }    from './components/sections/ExperienceSection';
 import { SkillsSection }        from './components/sections/SkillsSection';
 import { AchievementsSection }  from './components/sections/AchievementsSection';
+import { AiExperienceSection }  from './components/sections/AiExperienceSection';
 import { CertificationsSection } from './components/sections/CertificationsSection';
+import { SylvaHeroSection }    from './components/sections/SylvaHeroSection';
 import { ContactSection }       from './components/sections/ContactSection';
 import { WorldScene }           from './components/3d/WorldScene';
 
@@ -122,10 +124,21 @@ export const App: React.FC = () => {
           {/* 06 ACHIEVEMENTS */}
           <AchievementsSection />
 
-          {/* 07 CERTIFICATIONS */}
+          {/* 07 AI EXPERIENCE — Glass AI Button hero showcase */}
+          <AiExperienceSection />
+
+          {/* 08 CERTIFICATIONS */}
           <CertificationsSection />
 
-          {/* 08 CONTACT */}
+          {/* 08 LIVING WORLD — Sylva Hero cinematic interlude */}
+        </div>
+
+        {/* SylvaHero needs a clean section outside the dark container so
+            its full-screen iframe is not clipped by overflow:hidden */}
+        <SylvaHeroSection />
+
+        <div className="relative" style={{ background: '#0D0D0D' }}>
+          {/* 09 CONTACT */}
           <ContactSection />
         </div>
       </main>
