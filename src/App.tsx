@@ -1,16 +1,15 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect } from 'react';
 import Lenis from 'lenis';
 import { Navbar }               from './components/layout/Navbar';
 import { Footer }               from './components/layout/Footer';
 import { HeroSection }          from './components/sections/HeroSection';
 import { AboutSection }         from './components/sections/AboutSection';
 import { WorkSection }          from './components/sections/WorkSection';
-import { ExperienceSection }    from './components/sections/ExperienceSection';
 import { SkillsSection }        from './components/sections/SkillsSection';
+import { ExperienceSection }    from './components/sections/ExperienceSection';
 import { AchievementsSection }  from './components/sections/AchievementsSection';
 import { AiExperienceSection }  from './components/sections/AiExperienceSection';
 import { CertificationsSection } from './components/sections/CertificationsSection';
-import { SylvaHeroSection }    from './components/sections/SylvaHeroSection';
 import { ContactSection }       from './components/sections/ContactSection';
 import { WorldScene }           from './components/3d/WorldScene';
 
@@ -35,9 +34,10 @@ export const App: React.FC = () => {
       lenis.raf(time);
       requestAnimationFrame(raf);
     };
-    requestAnimationFrame(raf);
+    const reqId = requestAnimationFrame(raf);
 
     return () => {
+      cancelAnimationFrame(reqId);
       lenis.destroy();
     };
   }, []);
@@ -45,7 +45,7 @@ export const App: React.FC = () => {
   // ── Track scroll progress for 3D scene ───────────────────────────────────
   useEffect(() => {
     const handleScroll = () => {
-      const total  = document.documentElement.scrollHeight - window.innerHeight;
+      const total   = document.documentElement.scrollHeight - window.innerHeight;
       const current = window.scrollY;
       scrollProgress.current = total > 0 ? Math.min(current / total, 1) : 0;
     };
@@ -67,8 +67,8 @@ export const App: React.FC = () => {
 
   return (
     <div
-      className="relative min-h-screen overflow-x-hidden selection:bg-[rgba(255,152,18,0.30)] selection:text-white"
-      style={{ background: '#0D0D0D' }}
+      className="relative min-h-screen overflow-x-hidden selection:bg-[#FF9812]/30 selection:text-white"
+      style={{ background: '#080908' }}
     >
       {/* ── Skip link ── */}
       <a
@@ -78,7 +78,7 @@ export const App: React.FC = () => {
         Skip to main content
       </a>
 
-      {/* ── Fixed 3D background canvas ── */}
+      {/* ── Fixed 3D background canvas (Bioluminescent Spores, Ribbons & Neural Lattice) ── */}
       <div
         className="fixed inset-0 z-0 pointer-events-none"
         aria-hidden="true"
@@ -89,55 +89,51 @@ export const App: React.FC = () => {
         />
       </div>
 
-      {/* ── Sticky navigation ── */}
+      {/* ── Sticky Sylva Dock Navigation ── */}
       <Navbar />
 
       {/* ── Main content (on top of 3D canvas) ── */}
       <main id="main-content" className="relative z-10">
 
-        {/* 01 HERO — orange editorial full-screen */}
+        {/* 01 HERO — Dominant Foreground Portrait + Registered Sylva 3D Scene */}
         <HeroSection />
 
-        {/* Dark content sections layer below on scroll */}
-        <div className="relative" style={{ background: '#0D0D0D' }}>
-
-          {/* Transition gradient from orange → dark */}
+        {/* Continuous Living World Content Flow */}
+        <div
+          className="relative"
+          style={{
+            background: 'linear-gradient(180deg, #0A0B09 0%, #0D0E0C 50%, #090A08 100%)',
+          }}
+        >
+          {/* Subtle biophilic seam transition */}
           <div
-            className="h-32 w-full pointer-events-none"
+            className="h-24 w-full pointer-events-none"
             style={{
-              background: 'linear-gradient(to bottom, #FF9812 0%, #0D0D0D 100%)',
+              background: 'linear-gradient(to bottom, rgba(13,14,12,0.8) 0%, transparent 100%)',
             }}
           />
 
           {/* 02 ABOUT */}
           <AboutSection />
 
-          {/* 03 WORK */}
+          {/* 03 WORK (Projects) */}
           <WorkSection />
 
-          {/* 04 EXPERIENCE */}
-          <ExperienceSection />
-
-          {/* 05 SKILLS */}
+          {/* 04 SKILLS */}
           <SkillsSection />
+
+          {/* 05 EXPERIENCE */}
+          <ExperienceSection />
 
           {/* 06 ACHIEVEMENTS */}
           <AchievementsSection />
 
-          {/* 07 AI EXPERIENCE — Glass AI Button hero showcase */}
+          {/* 07 AI EXPERIMENTAL LAB — Photonics dispersion showcase at proper proportions */}
           <AiExperienceSection />
 
           {/* 08 CERTIFICATIONS */}
           <CertificationsSection />
 
-          {/* 08 LIVING WORLD — Sylva Hero cinematic interlude */}
-        </div>
-
-        {/* SylvaHero needs a clean section outside the dark container so
-            its full-screen iframe is not clipped by overflow:hidden */}
-        <SylvaHeroSection />
-
-        <div className="relative" style={{ background: '#0D0D0D' }}>
           {/* 09 CONTACT */}
           <ContactSection />
         </div>

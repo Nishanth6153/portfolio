@@ -434,7 +434,7 @@ export const WorldScene: React.FC<WorldSceneProps> = ({ scrollProgress, mouseRef
         toneMapping: THREE.ACESFilmicToneMapping,
         toneMappingExposure: 1.2,
       }}
-      shadows
+      shadows={{ type: THREE.PCFShadowMap }}
       dpr={[1, 1.5]}
       style={{ background: 'transparent' }}
     >

@@ -1,6 +1,12 @@
-import React, { useRef } from 'react';
-import { ArrowDown, FileText, ArrowUpRight, Zap, Play } from 'lucide-react';
+import React, { useRef, Suspense, lazy } from 'react';
+import { ArrowDown, ArrowUpRight, FileText, Send, Sparkles } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import { ScrollHeading } from '../animations/ScrollTypography';
+
+// ── Lazy-load the registered ThreeUI Sylva Living World scene ─────────────────
+const SylvaLivingWorldScene = lazy(() =>
+  import('@designcodeio/threeui').then((m) => ({ default: m.SylvaLivingWorldScene }))
+);
 
 export const HeroSection: React.FC = () => {
   const sectionRef = useRef<HTMLElement>(null);
@@ -9,402 +15,332 @@ export const HeroSection: React.FC = () => {
     offset: ['start start', 'end start'],
   });
 
-  const panelScale   = useTransform(scrollYProgress, [0, 0.6], [1, 0.90]);
-  const panelY       = useTransform(scrollYProgress, [0, 0.6], [0, -40]);
-  const panelOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0]);
-  const portraitY    = useTransform(scrollYProgress, [0, 0.5], [0, -60]);
-  const bgWordY      = useTransform(scrollYProgress, [0, 1], ['0%', '20%']);
+  // Scroll transforms for smooth 2.5D depth
+  const portraitY = useTransform(scrollYProgress, [0, 1], ['0%', '18%']);
+  const portraitScale = useTransform(scrollYProgress, [0, 1], [1, 1.05]);
+  const contentY = useTransform(scrollYProgress, [0, 1], ['0%', '-12%']);
+  const contentOpacity = useTransform(scrollYProgress, [0, 0.75], [1, 0]);
+  const sceneOpacity = useTransform(scrollYProgress, [0, 0.85], [1, 0.4]);
+
+  const scrollToSection = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
     <section
       ref={sectionRef}
       id="hero"
       aria-labelledby="hero-heading"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden"
-      style={{ background: '#FF9812' }}
+      className="relative min-h-[100svh] w-full flex items-center justify-center overflow-hidden"
+      style={{
+        background: 'radial-gradient(ellipse at 50% 100%, #151813 0%, #0D0E0C 50%, #080908 100%)',
+      }}
     >
-      {/* ── Outer orange background — large PORTFOLIO ghost text ── */}
+      {/* ── 1. REGISTERED SYLVA LIVING WORLD 3D ENVIRONMENT ── */}
       <motion.div
-        className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
-        style={{ y: bgWordY }}
+        className="absolute inset-0 z-0 pointer-events-auto"
+        style={{ opacity: sceneOpacity }}
+        aria-hidden="true"
       >
-        <span
-          className="font-display whitespace-nowrap leading-none"
-          style={{
-            fontSize: 'clamp(12rem, 28vw, 22rem)',
-            color: 'rgba(255,255,255,0.10)',
-            userSelect: 'none',
-            letterSpacing: '0.05em',
-          }}
-        >
-          PORTFOLIO
-        </span>
-      </motion.div>
-
-      {/* ── Ambient orange blobs ── */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div
-          className="absolute top-[-10%] left-[-5%] w-[50vw] h-[50vw] rounded-full"
-          style={{ background: 'radial-gradient(circle, rgba(255,200,80,0.20) 0%, transparent 65%)' }}
-        />
-        <div
-          className="absolute bottom-0 right-0 w-[45vw] h-[45vw] rounded-full"
-          style={{ background: 'radial-gradient(circle, rgba(200,80,0,0.25) 0%, transparent 65%)' }}
-        />
-        {/* Large circular orange shape behind portrait — like the reference */}
-        <div
-          className="absolute top-1/2 left-1/2 -translate-x-[30%] -translate-y-1/2 w-[55vw] h-[55vw] rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(200,90,0,0.40) 0%, rgba(180,60,0,0.20) 50%, transparent 70%)' }}
-        />
-      </div>
-
-      {/* ── BRAND MARK above the panel (like Omnic Studio label) ── */}
-      <motion.div
-        className="absolute top-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2"
-        initial={{ opacity: 0, y: -16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.1 }}
-      >
-        {/* No outer brand — handled by Navbar */}
-      </motion.div>
-
-      {/* ══════════════════════════════════════════════════════════════
-          MAIN ROUNDED PANEL  — matches Ref 1 composition exactly
-      ══════════════════════════════════════════════════════════════ */}
-      <motion.div
-        className="relative z-10 w-full mx-4 md:mx-8 lg:mx-16 overflow-visible"
-        style={{
-          maxWidth: '1120px',
-          scale: panelScale,
-          y: panelY,
-          opacity: panelOpacity,
-        }}
-      >
-        {/* The rounded panel container */}
-        <div
-          className="relative rounded-[28px] overflow-hidden"
-          style={{
-            boxShadow: '0 40px 120px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.25)',
-            minHeight: '68vh',
-          }}
-        >
-          {/* LEFT DARK PANEL */}
-          <div
-            className="absolute inset-y-0 left-0 w-[62%] z-0"
-            style={{
-              background: 'linear-gradient(135deg, #0D0D00 0%, #1A0E00 40%, #2D1500 70%, #3D1A00 100%)',
-            }}
-          >
-            {/* Warm gradient overlay mimicking orange light on dark — like the reference */}
+        <Suspense
+          fallback={
             <div
-              className="absolute inset-0"
-              style={{
-                background: 'radial-gradient(ellipse at 70% 40%, rgba(255,100,0,0.28) 0%, transparent 60%)',
-              }}
-            />
-          </div>
-
-          {/* RIGHT WHITE PANEL */}
-          <div
-            className="absolute inset-y-0 right-0 w-[42%] z-0"
+              className="w-full h-full flex items-center justify-center"
+              style={{ background: '#0D0E0C' }}
+            >
+              <div className="w-8 h-8 rounded-full border-2 border-[#FF9812]/40 border-t-transparent animate-spin" />
+            </div>
+          }
+        >
+          <SylvaLivingWorldScene
             style={{
-              background: 'linear-gradient(160deg, #FAFAF7 0%, #F2EDE8 100%)',
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              background: 'transparent',
             }}
           />
+        </Suspense>
 
-          {/* Grid layout inside panel */}
-          <div className="relative z-10 grid grid-cols-12 min-h-[68vh]">
+        {/* Floor light pool — warm ambient light anchoring the living world floor */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(70% 45% at 50% 108%, rgba(255,152,18,0.22) 0%, rgba(255,152,18,0.06) 45%, transparent 75%), linear-gradient(180deg, transparent 60%, rgba(13,14,12,0.85) 100%)',
+          }}
+        />
 
-            {/* ── LEFT COLUMN: Headline + CTA ── */}
-            <div className="col-span-5 flex flex-col justify-between p-8 md:p-10 xl:p-12">
+        {/* Ambient warm orange glow behind Nishanth's portrait */}
+        <div
+          className="absolute top-1/2 left-[55%] -translate-x-1/2 -translate-y-1/2 w-[55vw] h-[55vw] rounded-full pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(circle, rgba(255,152,18,0.18) 0%, rgba(232,130,10,0.08) 45%, transparent 70%)',
+            filter: 'blur(40px)',
+          }}
+        />
+      </motion.div>
 
-              {/* Top: logo mark + role label */}
-              <motion.div
-                initial={{ opacity: 0, y: -16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-              >
-                <p className="text-[11px] font-display tracking-[0.25em] mb-0.5" style={{ color: 'rgba(255,152,18,0.75)' }}>
-                  CREATIVE
-                </p>
-                <p className="text-[11px] font-display tracking-[0.25em]" style={{ color: 'rgba(255,152,18,0.55)' }}>
-                  AI / DATA SCIENCE ENGINEER
-                </p>
-              </motion.div>
+      {/* ── 2. VERTICAL COLUMN GUIDES (Sylva Living World structural grid) ── */}
+      <div className="absolute inset-0 pointer-events-none z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between opacity-30">
+        <div className="w-[1px] h-full bg-gradient-to-b from-transparent via-white/10 to-transparent" />
+        <div className="w-[1px] h-full bg-gradient-to-b from-transparent via-white/10 to-transparent hidden md:block" />
+        <div className="w-[1px] h-full bg-gradient-to-b from-transparent via-white/10 to-transparent hidden lg:block" />
+        <div className="w-[1px] h-full bg-gradient-to-b from-transparent via-white/10 to-transparent" />
+      </div>
 
-              {/* Center: Giant headline */}
-              <motion.div
-                className="my-auto py-6"
-                initial={{ opacity: 0, x: -40 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: 0.25, ease: [0.21, 0.47, 0.32, 0.98] }}
-              >
-                <h1
-                  id="hero-heading"
-                  className="font-display leading-[0.92]"
-                  style={{ fontSize: 'clamp(3.4rem, 7.5vw, 6.2rem)', color: '#FFFFFF', letterSpacing: '0.02em' }}
-                >
-                  CREATE<br />
-                  <span style={{ color: '#FF9812' }}>BUILD</span><br />
-                  SOLVE.
-                </h1>
+      {/* ── 3. MAIN HERO COMPOSITION (Content + Dominant Foreground Portrait) ── */}
+      <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-28 min-h-[100svh] flex flex-col justify-between">
+        
+        {/* Top spacer for navbar */}
+        <div className="h-6 md:h-10" />
 
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.6, delay: 0.55 }}
-                  className="text-sm leading-relaxed mt-5 max-w-[260px]"
-                  style={{ color: 'rgba(255,255,255,0.50)' }}
-                >
-                  Intelligent systems, data-driven applications &amp; modern software — engineered from first principles.
-                </motion.p>
-              </motion.div>
+        {/* Grid: Left Editorial Typography & CTAs | Right Dominant Portrait */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center flex-1 my-auto">
 
-              {/* Bottom: CTAs + stats */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.7 }}
-                className="space-y-5"
-              >
-                {/* Buttons */}
-                <div className="flex flex-wrap gap-3">
-                  <a
-                    href="#work"
-                    onClick={(e) => { e.preventDefault(); document.getElementById('work')?.scrollIntoView({ behavior: 'smooth' }); }}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm transition-all duration-300 font-display tracking-wider"
-                    style={{
-                      background: '#FAFAF7',
-                      color: '#111111',
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
-                    }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#FFFFFF'; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '#FAFAF7'; }}
-                  >
-                    VIEW WORK
-                    <ArrowUpRight className="w-4 h-4" />
-                  </a>
-
-                  <a
-                    href="/assets/Nishanth-G-Resume.pdf"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 font-display tracking-wider"
-                    style={{
-                      background: 'rgba(255,255,255,0.10)',
-                      border: '1px solid rgba(255,255,255,0.20)',
-                      color: '#FFFFFF',
-                    }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.18)'; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.10)'; }}
-                  >
-                    <FileText className="w-4 h-4" />
-                    RÉSUMÉ
-                  </a>
-                </div>
-
-                {/* Stats row — like "50+ Projects / 20+ Clients" in reference */}
-                <div
-                  className="flex items-center gap-5 pt-4"
-                  style={{ borderTop: '1px solid rgba(255,255,255,0.10)' }}
-                >
-                  {[
-                    { val: '4+',     label: 'PROJECTS' },
-                    { val: '8.15',   label: 'CGPA' },
-                    { val: '1+',     label: 'YRS EXP' },
-                  ].map(({ val, label }) => (
-                    <div key={label}>
-                      <p className="font-display text-white leading-none" style={{ fontSize: '1.5rem' }}>{val}</p>
-                      <p className="text-[10px] font-display mt-0.5 tracking-wider" style={{ color: 'rgba(255,152,18,0.70)' }}>{label}</p>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            </div>
-
-            {/* ── CENTER: PORTRAIT (col-span-4, absolute positioned to bleed) ── */}
-            {/* placeholder spacer — the portrait is positioned absolute over the panel */}
-            <div className="col-span-3" />
-
-            {/* ── RIGHT COLUMN: Availability + info cards ── */}
-            <div className="col-span-4 flex flex-col justify-between p-8 md:p-10 xl:p-12">
-
-              {/* Top nav links — like the reference */}
-              <motion.div
-                initial={{ opacity: 0, y: -12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                className="flex items-center justify-end gap-5"
-              >
-                {['WORK', 'ABOUT', 'SKILLS', 'CONTACT'].map((label) => (
-                  <button
-                    key={label}
-                    onClick={() => document.getElementById(label.toLowerCase())?.scrollIntoView({ behavior: 'smooth' })}
-                    className="text-[11px] font-mono-code tracking-widest transition-colors"
-                    style={{ color: '#555555' }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.color = '#111111'; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.color = '#555555'; }}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </motion.div>
-
-              {/* Middle: Availability headline — "AVAILABLE FOR / Freelance Projects" */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
-                className="my-auto py-6"
-              >
-                <div
-                  className="inline-flex items-center gap-1.5 mb-3 text-[11px] font-display tracking-widest"
-                  style={{ color: '#CC6600' }}
-                >
-                  <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#FF9812' }} />
-                  AVAILABLE FOR
-                </div>
-                <h2
-                  className="font-display leading-tight mb-6"
-                  style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.6rem)', color: '#111111', lineHeight: 1.1 }}
-                >
-                  Internships &amp;<br />
-                  <span style={{ color: '#FF9812' }}>Collaborations</span>
-                </h2>
-
-                {/* Service-style cards — matching ref right side cards */}
-                <div className="space-y-2.5">
-                  {[
-                    { icon: '⚡', title: 'Edge AI & ML', desc: 'On-device inference, TFLite' },
-                    { icon: '</>', title: 'Full-Stack Dev',  desc: 'FastAPI, React, Supabase' },
-                    { icon: '◎', title: 'Data Engineering', desc: 'Pipelines, analytics, MLOps' },
-                  ].map(({ icon, title, desc }) => (
-                    <div
-                      key={title}
-                      className="flex items-center justify-between p-3 rounded-xl transition-all duration-200 group cursor-default"
-                      style={{
-                        background: 'rgba(255,152,18,0.06)',
-                        border: '1px solid rgba(255,152,18,0.12)',
-                      }}
-                      onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLElement).style.background = 'rgba(255,152,18,0.12)';
-                        (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,152,18,0.30)';
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLElement).style.background = 'rgba(255,152,18,0.06)';
-                        (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,152,18,0.12)';
-                      }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span
-                          className="w-8 h-8 rounded-lg flex items-center justify-center text-sm"
-                          style={{ background: 'rgba(255,152,18,0.15)', color: '#FF9812' }}
-                        >
-                          {icon}
-                        </span>
-                        <div>
-                          <p className="text-xs font-display tracking-wider" style={{ color: '#111111' }}>{title}</p>
-                          <p className="text-[10px]" style={{ color: '#888888' }}>{desc}</p>
-                        </div>
-                      </div>
-                      <ArrowUpRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-50 transition-opacity" style={{ color: '#FF9812' }} />
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-
-              {/* Bottom: Testimonial card — like the reference */}
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.85 }}
-                className="p-4 rounded-2xl"
+          {/* ── LEFT COLUMN: Name, Headline, Intro, and Primary CTA (col-span-7) ── */}
+          <motion.div
+            className="lg:col-span-7 flex flex-col justify-center space-y-7 z-30"
+            style={{ y: contentY, opacity: contentOpacity }}
+          >
+            {/* Editorial Sylva-style Eyebrow Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: -16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.15 }}
+              className="inline-flex items-center gap-3"
+            >
+              <div
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-mono-code tracking-[0.2em]"
                 style={{
-                  background: 'rgba(255,152,18,0.08)',
-                  border: '1px solid rgba(255,152,18,0.20)',
+                  background: 'rgba(24,28,22,0.75)',
+                  border: '1px solid rgba(255,152,18,0.30)',
+                  backdropFilter: 'blur(16px)',
+                  color: '#FFB347',
                 }}
               >
-                <span className="text-xl leading-none font-display" style={{ color: '#FF9812' }}>"</span>
-                <p className="text-xs leading-relaxed mt-0.5" style={{ color: '#444444' }}>
-                  Building the intersection of <strong style={{ color: '#111' }}>applied machine learning</strong>, edge computing &amp; modern software — where data meets deterministic engineering.
-                </p>
-                <div className="flex items-center gap-2 mt-3">
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-black text-xs font-bold font-display"
-                    style={{ background: 'linear-gradient(135deg, #FFB347, #FF9812)' }}
-                  >
-                    N
-                  </div>
-                  <div>
-                    <p className="text-[12px] font-display tracking-wider" style={{ color: '#111' }}>Nishanth G</p>
-                    <p className="text-[9px]" style={{ color: '#888' }}>NGPIT, 2024–Present</p>
-                  </div>
-                </div>
-              </motion.div>
+                <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#FF9812' }} />
+                <span>NISHANTH G. // AI &amp; DATA SCIENCE</span>
+              </div>
+
+              <span className="hidden sm:inline text-[11px] font-mono-code tracking-widest text-white/40">
+                [ NGPIT, TN ]
+              </span>
+            </motion.div>
+
+            {/* Giant Editorial Headline */}
+            <div className="space-y-1">
+              <ScrollHeading
+                as="h1"
+                id="hero-heading"
+                className="font-display leading-[0.90] tracking-[0.02em] text-white"
+                style={{ fontSize: 'clamp(3.8rem, 8.5vw, 7.8rem)' }}
+              >
+                CREATE.
+                <span className="text-[#FF9812] block">BUILD.</span>
+                SOLVE.
+              </ScrollHeading>
             </div>
-          </div>{/* /grid */}
 
-        </div>{/* /rounded panel */}
+            {/* Introduction Paragraph */}
+            <motion.p
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="text-base sm:text-lg md:text-xl font-sans max-w-xl leading-relaxed"
+              style={{ color: 'rgba(250,250,247,0.78)' }}
+            >
+              Engineering intelligent systems, on-device edge ML, and high-throughput software architectures from first principles.
+            </motion.p>
 
-        {/* ══════════════════════════════════════════════════════════════
-            PORTRAIT — High-res transparent cutout placed IN FRONT
-            Positioned at center seam of dark/white panel split.
-            Overlaps the frame in front with warm ambient glow.
-        ══════════════════════════════════════════════════════════════ */}
-        <motion.div
-          className="absolute z-20 pointer-events-none select-none"
-          style={{
-            left: '33%',
-            bottom: '-16px',
-            width: 'clamp(300px, 37%, 500px)',
-            y: portraitY,
-          }}
-          initial={{ opacity: 0, y: 70, scale: 0.93 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 1.1, delay: 0.35, ease: [0.21, 0.47, 0.32, 0.98] }}
-        >
-          {/* Wrapper with fade mask at bottom edge */}
-          <div
+            {/* ── Refined CTA System (Explore My Work + Contact + Résumé) ── */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.55 }}
+              className="flex flex-wrap items-center gap-4 pt-2"
+            >
+              {/* PRIMARY HERO CTA: Explore My Work */}
+              <button
+                onClick={() => scrollToSection('work')}
+                className="group relative inline-flex items-center gap-3 px-7 py-3.5 rounded-full font-display text-sm tracking-widest transition-all duration-300"
+                style={{
+                  background: 'linear-gradient(135deg, #FFB347 0%, #FF9812 50%, #E8820A 100%)',
+                  color: '#0D0E0C',
+                  boxShadow: '0 8px 30px rgba(255,152,18,0.35), inset 0 1px rgba(255,255,255,0.4)',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
+                  (e.currentTarget as HTMLElement).style.boxShadow =
+                    '0 12px 40px rgba(255,152,18,0.50), inset 0 1px rgba(255,255,255,0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
+                  (e.currentTarget as HTMLElement).style.boxShadow =
+                    '0 8px 30px rgba(255,152,18,0.35), inset 0 1px rgba(255,255,255,0.4)';
+                }}
+              >
+                <Sparkles className="w-4 h-4 text-black group-hover:rotate-12 transition-transform" />
+                <span className="font-bold">EXPLORE MY WORK</span>
+                <ArrowDown className="w-4 h-4 text-black group-hover:translate-y-0.5 transition-transform" />
+              </button>
+
+              {/* SECONDARY CTA: Contact */}
+              <button
+                onClick={() => scrollToSection('contact')}
+                className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full font-display text-sm tracking-widest transition-all duration-300"
+                style={{
+                  background: 'rgba(24,28,22,0.70)',
+                  border: '1px solid rgba(255,152,18,0.35)',
+                  color: '#FAFAF7',
+                  backdropFilter: 'blur(16px)',
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(255,152,18,0.18)';
+                  (e.currentTarget as HTMLElement).style.borderColor = '#FF9812';
+                  (e.currentTarget as HTMLElement).style.color = '#FF9812';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(24,28,22,0.70)';
+                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,152,18,0.35)';
+                  (e.currentTarget as HTMLElement).style.color = '#FAFAF7';
+                }}
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>GET IN TOUCH</span>
+              </button>
+
+              {/* TERTIARY CTA: Résumé */}
+              <a
+                href="/assets/Nishanth-G-Resume.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-5 py-3.5 rounded-full font-display text-xs tracking-widest transition-all duration-300 text-white/60 hover:text-white hover:bg-white/10"
+              >
+                <FileText className="w-3.5 h-3.5 text-[#FF9812]" />
+                <span>RÉSUMÉ</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </a>
+            </motion.div>
+
+            {/* Quick Metrics Strip */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.7 }}
+              className="flex items-center gap-8 pt-4 border-t border-white/10"
+            >
+              {[
+                { val: '4+', label: 'PROJECTS' },
+                { val: '8.15', label: 'CGPA' },
+                { val: 'SIH ’25', label: 'PRESENTER' },
+                { val: '100%', label: 'OFFLINE AI' },
+              ].map(({ val, label }) => (
+                <div key={label}>
+                  <p className="font-display text-white text-xl sm:text-2xl leading-none">{val}</p>
+                  <p className="text-[10px] font-mono-code tracking-wider text-[#FF9812]/75 mt-1">{label}</p>
+                </div>
+              ))}
+            </motion.div>
+          </motion.div>
+
+          {/* ── RIGHT COLUMN: DOMINANT FOREGROUND PORTRAIT (col-span-5) ── */}
+          <motion.div
+            className="lg:col-span-5 relative flex items-end justify-center lg:justify-end z-20 pointer-events-none select-none"
             style={{
-              height: 'clamp(420px, 84vh, 740px)',
-              maskImage: 'linear-gradient(to bottom, black 0%, black 84%, transparent 100%)',
-              WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 84%, transparent 100%)',
+              y: portraitY,
+              scale: portraitScale,
             }}
+            initial={{ opacity: 0, y: 60, scale: 0.94 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 1.1, delay: 0.3, ease: [0.21, 0.47, 0.32, 0.98] }}
           >
-            <img
-              src="/assets/portrait.png"
-              alt="Nishanth G — AI & Data Science Engineer"
+            {/* Luminous Ambient Halo behind portrait */}
+            <div
+              className="absolute bottom-10 left-1/2 -translate-x-1/2 w-[340px] sm:w-[440px] h-[340px] sm:h-[440px] rounded-full pointer-events-none -z-10"
               style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-                objectPosition: 'center bottom',
-                filter: 'drop-shadow(0 20px 45px rgba(0,0,0,0.55)) drop-shadow(0 0 50px rgba(255,152,18,0.28))',
+                background:
+                  'radial-gradient(circle, rgba(255,152,18,0.28) 0%, rgba(200,90,0,0.12) 50%, transparent 70%)',
+                filter: 'blur(35px)',
               }}
-              draggable={false}
             />
-          </div>
-        </motion.div>
 
-      </motion.div>{/* /panel wrapper */}
+            {/* Nishanth's Actual Portrait cutout — Prominent, Foregrounded, Unclipped */}
+            <div
+              className="relative w-full max-w-[460px] sm:max-w-[540px] lg:max-w-[620px]"
+              style={{
+                height: 'clamp(480px, 72vh, 800px)',
+                maskImage: 'linear-gradient(to bottom, black 0%, black 86%, transparent 100%)',
+                WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 86%, transparent 100%)',
+              }}
+            >
+              <img
+                src="/assets/portrait.png"
+                alt="Nishanth G — AI & Data Science Engineer"
+                className="w-full h-full object-contain object-bottom"
+                style={{
+                  filter:
+                    'drop-shadow(0 25px 60px rgba(0,0,0,0.85)) drop-shadow(0 0 50px rgba(255,152,18,0.30))',
+                }}
+                draggable={false}
+              />
+            </div>
 
-      {/* ── Scroll indicator ── */}
-      <motion.div
-        className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-20"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.4, duration: 0.6 }}
-      >
-        <span className="text-[9px] font-mono-code tracking-[0.3em]" style={{ color: 'rgba(17,17,17,0.55)' }}>
-          SCROLL TO EXPLORE
-        </span>
+            {/* Floating Live Status Card attached to portrait */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7, delay: 0.8 }}
+              className="absolute -bottom-2 -left-4 sm:left-4 z-30 pointer-events-auto"
+            >
+              <div
+                className="p-3.5 sm:p-4 rounded-2xl max-w-[240px]"
+                style={{
+                  background: 'rgba(18,22,18,0.82)',
+                  border: '1px solid rgba(255,152,18,0.25)',
+                  boxShadow: '0 16px 40px rgba(0,0,0,0.5)',
+                  backdropFilter: 'blur(20px)',
+                }}
+              >
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#4ade80' }} />
+                  <span className="text-[10px] font-mono-code tracking-widest text-[#4ade80]">
+                    AVAILABLE NOW
+                  </span>
+                </div>
+                <p className="text-xs font-display text-white tracking-wider leading-snug">
+                  Internships &amp; Machine Learning Projects
+                </p>
+                <p className="text-[10px] font-mono-code text-[#FF9812]/80 mt-1">
+                  Dr. N.G.P. Institute of Tech
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+
+        </div>{/* /grid */}
+
+        {/* ── 4. SCROLL INDICATOR ── */}
         <motion.div
-          animate={{ y: [0, 7, 0] }}
-          transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
+          className="flex flex-col items-center justify-center gap-2 pt-6 pointer-events-none"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.2, duration: 0.6 }}
         >
-          <ArrowDown className="w-4 h-4" style={{ color: 'rgba(17,17,17,0.55)' }} />
+          <span className="text-[10px] font-mono-code tracking-[0.3em] text-[#FF9812]/60">
+            SCROLL INTO THE LIVING WORLD
+          </span>
+          <motion.div
+            animate={{ y: [0, 6, 0] }}
+            transition={{ repeat: Infinity, duration: 1.8, ease: 'easeInOut' }}
+          >
+            <ArrowDown className="w-4 h-4 text-[#FF9812]" />
+          </motion.div>
         </motion.div>
-      </motion.div>
+
+      </div>{/* /container */}
     </section>
   );
 };

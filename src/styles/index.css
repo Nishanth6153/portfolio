@@ -2,38 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-@font-face {
-  font-family: 'Armstrong';
-  src: url('/fonts/Armstrong.woff2') format('woff2'),
-       url('/fonts/Armstrong.woff') format('woff'),
-       url('/fonts/Armstrong.ttf') format('truetype'),
-       url('/fonts/Armstrong.otf') format('opentype');
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Armstrong';
-  src: url('/fonts/Armstrong Italic.woff2') format('woff2'),
-       url('/fonts/Armstrong Italic.woff') format('woff'),
-       url('/fonts/Armstrong Italic.ttf') format('truetype'),
-       url('/fonts/Armstrong Italic.otf') format('opentype');
-  font-weight: 100 900;
-  font-style: italic;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Armstrong Tilted';
-  src: url('/fonts/Armstrong Tilted.woff2') format('woff2'),
-       url('/fonts/Armstrong Tilted.woff') format('woff'),
-       url('/fonts/Armstrong Tilted.ttf') format('truetype'),
-       url('/fonts/Armstrong Tilted.otf') format('opentype');
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
+/* ── Font stack: Bebas Neue (display) + Inter (body) + JetBrains Mono (code) ── */
+/* All loaded via Google Fonts in index.html — no local @font-face needed.       */
 
 @layer base {
   :root {
@@ -67,13 +37,14 @@
   html {
     scroll-behavior: auto; /* Lenis handles this */
     color-scheme: dark;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    /* Inter uses cv01-cv04 for nicer figures; Bebas Neue ignores these */
+    font-feature-settings: "cv01", "cv03", "cv04";
   }
 
   body {
     background-color: var(--black-rich);
     color: var(--warm-white);
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     overflow-x: hidden;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -81,8 +52,9 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Armstrong', 'Plus Jakarta Sans', sans-serif;
-    letter-spacing: 0.04em;
+    /* Bebas Neue is inherently uppercase/condensed — matches reference image */
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 0.03em;
   }
 
   ::selection {
@@ -98,15 +70,15 @@
 }
 
 @layer utilities {
-  /* Condensed display font for big headlines */
+  /* Primary display font — Bebas Neue, bold condensed editorial (see reference image) */
   .font-display {
-    font-family: 'Armstrong', 'Bebas Neue', 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Bebas Neue', sans-serif;
     letter-spacing: 0.03em;
   }
 
-  .font-armstrong {
-    font-family: 'Armstrong', sans-serif;
-    letter-spacing: 0.04em;
+  /* Body / UI sans-serif — Inter */
+  .font-sans-ui {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
 
   .font-mono-code {

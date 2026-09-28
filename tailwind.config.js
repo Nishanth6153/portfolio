@@ -58,10 +58,12 @@ export default {
       },
 
       fontFamily: {
-        sans:    ['"Plus Jakarta Sans"', 'Inter', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+        // Body / UI text
+        sans:    ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+        // Monospace — code labels, badges
         mono:    ['"JetBrains Mono"', '"DM Mono"', 'monospace'],
-        display: ['"Armstrong"', '"Bebas Neue"', '"Plus Jakarta Sans"', 'sans-serif'],
-        armstrong: ['"Armstrong"', 'sans-serif'],
+        // Display — Bebas Neue: bold condensed editorial (matches reference image)
+        display: ['"Bebas Neue"', 'sans-serif'],
       },
 
       fontSize: {

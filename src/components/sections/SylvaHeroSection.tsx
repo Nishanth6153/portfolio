@@ -39,7 +39,6 @@ export const SylvaHeroSection: React.FC = () => {
           }
         >
           <SylvaHero
-            variant="living-green"
             headingFont="lexend"
             bodyFont="lexend"
             headingWeight="300"

@@ -1,7 +1,7 @@
 import React from 'react';
-import { ShieldCheck, ExternalLink } from 'lucide-react';
+import { ShieldCheck, Award, ExternalLink } from 'lucide-react';
 import { certifications } from '../../data/certifications';
-import { RevealOnScroll } from '../animations/RevealOnScroll';
+import { ScrollHeading } from '../animations/ScrollTypography';
 
 export const CertificationsSection: React.FC = () => {
   return (
@@ -10,97 +10,96 @@ export const CertificationsSection: React.FC = () => {
       className="relative py-28 md:py-36 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto"
       aria-labelledby="certifications-heading"
     >
-      {/* Section label */}
-      <RevealOnScroll delay={0}>
-        <div className="flex items-center gap-4 mb-14">
-          <span className="section-badge">07 — PROFESSIONAL VALIDATION</span>
-          <div className="divider-orange flex-1" />
-        </div>
-      </RevealOnScroll>
+      {/* ── Section Eyebrow Header ── */}
+      <div className="flex items-center gap-4 mb-14">
+        <span className="section-badge">
+          <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#FF9812' }} />
+          07 — PROFESSIONAL VALIDATION
+        </span>
+        <div className="divider-orange flex-1" />
+        <span className="hidden sm:inline text-[10px] font-mono-code tracking-[0.25em]" style={{ color: 'rgba(255,152,18,0.45)' }}>
+          [ INDUSTRY CREDENTIALS ]
+        </span>
+      </div>
 
-      <RevealOnScroll delay={0.05}>
-        <h2
+      {/* ── Headline with Masked Reveal ── */}
+      <div className="mb-16">
+        <ScrollHeading
+          as="h2"
           id="certifications-heading"
-          className="font-display mb-16"
-          style={{ fontSize: 'clamp(3rem, 8vw, 6rem)', color: '#FAFAF7', lineHeight: 0.9 }}
+          className="font-display leading-[0.90] text-[#FAFAF7]"
+          style={{ fontSize: 'clamp(3rem, 7.5vw, 6.2rem)' }}
         >
-          CERTIFICATIONS.
-        </h2>
-      </RevealOnScroll>
+          VERIFIED
+          <span className="text-[#FF9812] block">CREDENTIALS.</span>
+        </ScrollHeading>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {certifications.map((cert, idx) => (
-          <RevealOnScroll key={cert.id} delay={0.05 + idx * 0.04}>
-            <div
-              className="h-full p-6 rounded-2xl flex flex-col justify-between transition-all duration-400"
-              style={{
-                background: '#111111',
-                border: '1px solid rgba(255,152,18,0.10)',
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,152,18,0.30)';
-                (e.currentTarget as HTMLElement).style.boxShadow = '0 0 30px rgba(255,152,18,0.06)';
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,152,18,0.10)';
-                (e.currentTarget as HTMLElement).style.boxShadow = 'none';
-              }}
-            >
-              <div>
-                {/* Issuer + year */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="p-2 rounded-xl"
-                      style={{
-                        background: 'rgba(255,152,18,0.10)',
-                        border: '1px solid rgba(255,152,18,0.20)',
-                      }}
-                    >
-                      <ShieldCheck className="w-4 h-4" style={{ color: '#FF9812' }} />
-                    </div>
-                    <span className="text-[10px] font-mono-code font-bold tracking-widest" style={{ color: '#FF9812' }}>
-                      {cert.issuer}
-                    </span>
+      {/* ── Certifications Grid ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {certifications.map((cert) => (
+          <div
+            key={cert.id}
+            className="p-7 rounded-3xl flex flex-col justify-between transition-all duration-300 group"
+            style={{
+              background: 'linear-gradient(135deg, rgba(24,28,22,0.80) 0%, rgba(16,18,14,0.90) 100%)',
+              border: '1px solid rgba(255,152,18,0.15)',
+              boxShadow: '0 12px 30px rgba(0,0,0,0.35)',
+              backdropFilter: 'blur(16px)',
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,152,18,0.45)';
+              (e.currentTarget as HTMLElement).style.boxShadow =
+                '0 20px 45px rgba(0,0,0,0.5), 0 0 30px rgba(255,152,18,0.08)';
+              (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,152,18,0.15)';
+              (e.currentTarget as HTMLElement).style.boxShadow = '0 12px 30px rgba(0,0,0,0.35)';
+              (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
+            }}
+          >
+            <div>
+              {/* Issuer + Year Header */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-[#FF9812]/15 border border-[#FF9812]/25">
+                    <ShieldCheck className="w-4 h-4 text-[#FF9812]" />
                   </div>
-                  {cert.year && (
-                    <span className="text-[10px] font-mono-code" style={{ color: 'rgba(250,250,247,0.30)' }}>
-                      {cert.year}
-                    </span>
-                  )}
+                  <span className="text-[11px] font-mono-code font-bold tracking-widest text-[#FF9812]">
+                    {cert.issuer}
+                  </span>
                 </div>
-
-                <h3 className="text-base font-bold tracking-tight mb-4" style={{ color: '#FAFAF7' }}>
-                  {cert.title}
-                </h3>
+                {cert.year && (
+                  <span className="text-[10px] font-mono-code text-white/40">
+                    {cert.year}
+                  </span>
+                )}
               </div>
 
-              {/* Skills */}
-              <div
-                className="pt-4"
-                style={{ borderTop: '1px solid rgba(255,152,18,0.08)' }}
-              >
-                <p className="text-[9px] font-mono-code tracking-widest mb-3" style={{ color: 'rgba(255,152,18,0.50)' }}>
-                  VALIDATED COMPETENCIES
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {cert.skills.map((skill) => (
-                    <span
-                      key={skill}
-                      className="text-[10px] font-mono-code px-2 py-0.5 rounded"
-                      style={{
-                        background: 'rgba(255,152,18,0.08)',
-                        border: '1px solid rgba(255,152,18,0.15)',
-                        color: 'rgba(250,250,247,0.55)',
-                      }}
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
+              {/* Title */}
+              <h3 className="text-base sm:text-lg font-bold tracking-tight text-white mb-4">
+                {cert.title}
+              </h3>
+            </div>
+
+            {/* Validated Skills */}
+            <div className="pt-4 border-t border-white/10">
+              <p className="text-[9px] font-mono-code tracking-widest text-white/40 mb-2.5">
+                VALIDATED SKILLS
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {cert.skills.map((skill) => (
+                  <span
+                    key={skill}
+                    className="text-[10px] font-mono-code px-2.5 py-0.5 rounded-full text-white/60 bg-white/5 border border-white/10"
+                  >
+                    {skill}
+                  </span>
+                ))}
               </div>
             </div>
-          </RevealOnScroll>
+          </div>
         ))}
       </div>
     </section>

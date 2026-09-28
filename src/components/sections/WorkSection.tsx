@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { ArrowUpRight, Maximize2 } from 'lucide-react';
+import { ArrowUpRight, Maximize2, ExternalLink, Code2, Layers, Cpu } from 'lucide-react';
 import { GithubIcon } from '../ui/Icons';
 import { projects } from '../../data/projects';
 import { Project } from '../../types/portfolio';
-import { RevealOnScroll } from '../animations/RevealOnScroll';
+import { ScrollHeading } from '../animations/ScrollTypography';
 import { ProjectModal } from '../ui/ProjectModal';
 
 export const WorkSection: React.FC = () => {
@@ -15,194 +15,185 @@ export const WorkSection: React.FC = () => {
       className="relative py-28 md:py-36 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto"
       aria-labelledby="work-heading"
     >
-      {/* Section label */}
-      <RevealOnScroll delay={0}>
-        <div className="flex items-center gap-4 mb-14">
-          <span className="section-badge">03 — SELECTED WORK</span>
-          <div className="divider-orange flex-1" />
-        </div>
-      </RevealOnScroll>
+      {/* ── Section Eyebrow Header ── */}
+      <div className="flex items-center gap-4 mb-14">
+        <span className="section-badge">
+          <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#FF9812' }} />
+          03 — SELECTED WORK
+        </span>
+        <div className="divider-orange flex-1" />
+        <span className="hidden sm:inline text-[10px] font-mono-code tracking-[0.25em]" style={{ color: 'rgba(255,152,18,0.45)' }}>
+          [ PRODUCTION SYSTEMS ]
+        </span>
+      </div>
 
-      <RevealOnScroll delay={0.05}>
-        <h2
+      {/* ── Main Headline with Scroll-driven Masked Line Reveals ── */}
+      <div className="mb-16">
+        <ScrollHeading
+          as="h2"
           id="work-heading"
-          className="font-display mb-16"
-          style={{ fontSize: 'clamp(3rem, 8vw, 6rem)', color: '#FAFAF7', lineHeight: 0.9 }}
+          className="font-display leading-[0.90] text-[#FAFAF7]"
+          style={{ fontSize: 'clamp(3rem, 7.5vw, 6.2rem)' }}
         >
-          ENGINEERED<br />
-          <span style={{ color: '#FF9812' }}>SOLUTIONS.</span>
-        </h2>
-      </RevealOnScroll>
+          ENGINEERED
+          <span className="text-[#FF9812] block">SOLUTIONS.</span>
+        </ScrollHeading>
+        <p className="text-sm sm:text-base text-white/50 max-w-xl mt-4 font-sans">
+          Production systems, edge AI architectures, and full-stack software solving tangible physical and algorithmic problems.
+        </p>
+      </div>
 
-      {/* Projects list */}
-      <div className="space-y-6">
-        {projects.map((project, idx) => (
-          <RevealOnScroll key={project.id} delay={0.1 + idx * 0.05}>
-            <article
-              className="project-card group cursor-pointer"
-              onClick={() => setSelectedProject(project)}
-              aria-labelledby={`project-title-${project.id}`}
-            >
-              <div className="p-6 md:p-10">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      {/* ── Projects List with Sylva Living World Cards ── */}
+      <div className="space-y-8">
+        {projects.map((project) => (
+          <article
+            key={project.id}
+            className="group relative rounded-3xl p-6 sm:p-8 md:p-10 transition-all duration-300"
+            style={{
+              background: 'linear-gradient(135deg, rgba(24,28,22,0.80) 0%, rgba(16,18,14,0.92) 100%)',
+              border: '1px solid rgba(255,152,18,0.18)',
+              boxShadow: '0 16px 40px rgba(0,0,0,0.4)',
+              backdropFilter: 'blur(20px)',
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,152,18,0.45)';
+              (e.currentTarget as HTMLElement).style.boxShadow =
+                '0 24px 60px rgba(0,0,0,0.6), 0 0 40px rgba(255,152,18,0.12)';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,152,18,0.18)';
+              (e.currentTarget as HTMLElement).style.boxShadow = '0 16px 40px rgba(0,0,0,0.4)';
+            }}
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-                  {/* Left: Project info */}
-                  <div className="lg:col-span-7 space-y-5">
-                    {/* Number + category */}
-                    <div className="flex items-center gap-4">
-                      <span
-                        className="font-mono-code text-xs font-bold px-2.5 py-1 rounded-lg"
-                        style={{
-                          background: 'rgba(255,152,18,0.10)',
-                          border: '1px solid rgba(255,152,18,0.25)',
-                          color: '#FF9812',
-                        }}
-                      >
-                        {project.number}
-                      </span>
-                      <span
-                        className="text-[10px] font-mono-code tracking-widest"
-                        style={{ color: 'rgba(250,250,247,0.35)' }}
-                      >
-                        {project.category}
-                      </span>
-
-                      {project.metrics && project.metrics.length > 0 && (
-                        <span
-                          className="ml-auto text-[10px] font-mono-code px-2 py-0.5 rounded"
-                          style={{
-                            background: 'rgba(255,152,18,0.08)',
-                            color: 'rgba(255,152,18,0.75)',
-                          }}
-                        >
-                          {project.metrics[0].label}: {project.metrics[0].value}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Title */}
-                    <div>
-                      <h3
-                        id={`project-title-${project.id}`}
-                        className="text-2xl md:text-3xl font-bold tracking-tight transition-colors duration-300"
-                        style={{ color: '#FAFAF7' }}
-                      >
-                        {project.title}
-                      </h3>
-                      <p className="mt-1 text-sm font-mono-code" style={{ color: 'rgba(255,152,18,0.65)' }}>
-                        {project.subtitle}
-                      </p>
-                    </div>
-
-                    {/* Description */}
-                    <p className="text-sm leading-relaxed" style={{ color: 'rgba(250,250,247,0.50)' }}>
-                      {project.description}
-                    </p>
-
-                    {/* Tech stack */}
-                    <div className="flex flex-wrap gap-2">
-                      {project.technologies.map((tech) => (
-                        <span key={tech} className="skill-tag">{tech}</span>
-                      ))}
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex flex-wrap gap-3 pt-1">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setSelectedProject(project); }}
-                        className="btn-orange text-xs py-2 px-4"
-                      >
-                        <Maximize2 className="w-3.5 h-3.5" />
-                        CASE STUDY
-                      </button>
-                      {project.github && (
-                        <a
-                          href={project.github}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="btn-dark-ghost text-xs py-2 px-4"
-                        >
-                          <GithubIcon className="w-3.5 h-3.5" />
-                          CODE
-                          <ArrowUpRight className="w-3 h-3" />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Right: Metrics + features panel */}
-                  <div className="lg:col-span-5">
-                    <div
-                      className="p-6 rounded-2xl relative overflow-hidden"
+              {/* Left Column: Number, Title, Subtitle, Description */}
+              <div className="lg:col-span-8 space-y-4">
+                
+                {/* Number & Category */}
+                <div className="flex items-center gap-3">
+                  <span
+                    className="font-mono-code text-xs font-bold px-3 py-1 rounded-lg"
+                    style={{
+                      background: 'rgba(255,152,18,0.12)',
+                      border: '1px solid rgba(255,152,18,0.30)',
+                      color: '#FF9812',
+                    }}
+                  >
+                    {project.number}
+                  </span>
+                  <span className="text-[10px] font-mono-code tracking-widest text-white/40">
+                    {project.category}
+                  </span>
+                  {project.metrics && project.metrics.length > 0 && (
+                    <span
+                      className="ml-auto text-[10px] font-mono-code px-2.5 py-1 rounded-md"
                       style={{
-                        background: 'rgba(255,152,18,0.05)',
-                        border: '1px solid rgba(255,152,18,0.12)',
+                        background: 'rgba(255,152,18,0.10)',
+                        border: '1px solid rgba(255,152,18,0.20)',
+                        color: '#FFB347',
                       }}
                     >
-                      {/* Glow accent */}
-                      <div
-                        className="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none"
-                        style={{ background: 'radial-gradient(circle, rgba(255,152,18,0.12) 0%, transparent 70%)' }}
-                      />
+                      {project.metrics[0].label}: {project.metrics[0].value}
+                    </span>
+                  )}
+                </div>
 
-                      {/* Metrics */}
-                      {project.metrics && (
-                        <div className="grid grid-cols-3 gap-3 mb-5">
-                          {project.metrics.map(({ label, value }) => (
-                            <div key={label} className="text-center">
-                              <p
-                                className="font-display text-2xl"
-                                style={{ color: '#FF9812', lineHeight: 1 }}
-                              >
-                                {value}
-                              </p>
-                              <p className="text-[9px] font-mono-code mt-1" style={{ color: 'rgba(250,250,247,0.35)' }}>
-                                {label.toUpperCase()}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                {/* Title */}
+                <div>
+                  <h3 className="text-2xl sm:text-3xl font-display tracking-wide text-white group-hover:text-[#FFB347] transition-colors">
+                    {project.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm font-mono-code text-[#FF9812]/80 mt-1">
+                    {project.subtitle}
+                  </p>
+                </div>
 
-                      <div className="divider-orange mb-5" />
+                {/* Description */}
+                <p className="text-sm leading-relaxed text-white/70 font-sans">
+                  {project.description}
+                </p>
 
-                      {/* Feature list */}
-                      <ul className="space-y-2.5">
-                        {project.features.slice(0, 3).map((feature, i) => (
-                          <li key={i} className="flex items-start gap-2.5 text-xs" style={{ color: 'rgba(250,250,247,0.55)' }}>
-                            <span
-                              className="w-1.5 h-1.5 rounded-full shrink-0 mt-1.5"
-                              style={{ background: '#FF9812' }}
-                            />
-                            {feature}
-                          </li>
-                        ))}
-                      </ul>
-
-                      {/* Expand hint */}
-                      <div className="mt-5 flex items-center gap-2 text-[10px] font-mono-code" style={{ color: 'rgba(255,152,18,0.55)' }}>
-                        <Maximize2 className="w-3 h-3" />
-                        CLICK TO EXPAND FULL CASE STUDY
-                      </div>
-                    </div>
-                  </div>
-
+                {/* Technologies Badges */}
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {project.technologies.map((tech) => (
+                    <span
+                      key={tech}
+                      className="text-[11px] font-mono-code px-3 py-1 rounded-full text-white/60"
+                      style={{
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.10)',
+                      }}
+                    >
+                      {tech}
+                    </span>
+                  ))}
                 </div>
               </div>
 
-              {/* Bottom hover bar */}
-              <div
-                className="h-px w-0 group-hover:w-full transition-all duration-500"
-                style={{ background: 'linear-gradient(90deg, #FF9812, #FFB347, transparent)' }}
-              />
-            </article>
-          </RevealOnScroll>
+              {/* Right Column: Action Buttons & Key Metrics */}
+              <div className="lg:col-span-4 flex flex-col justify-between h-full space-y-4 pt-2 lg:pt-0">
+                
+                {/* Metric pill cards */}
+                {project.metrics && project.metrics.length > 1 && (
+                  <div className="grid grid-cols-2 gap-2 p-3 rounded-2xl bg-black/30 border border-white/5">
+                    {project.metrics.slice(1).map((m, i) => (
+                      <div key={i} className="text-center">
+                        <p className="text-[10px] font-mono-code text-white/40">{m.label}</p>
+                        <p className="text-xs font-display text-white tracking-wider mt-0.5">{m.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Interactive CTA buttons */}
+                <div className="flex flex-col gap-2.5">
+                  <button
+                    onClick={() => setSelectedProject(project)}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full font-display text-xs tracking-widest transition-all duration-300 w-full"
+                    style={{
+                      background: 'rgba(255,152,18,0.15)',
+                      border: '1px solid rgba(255,152,18,0.35)',
+                      color: '#FF9812',
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLElement).style.background = '#FF9812';
+                      (e.currentTarget as HTMLElement).style.color = '#0D0E0C';
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLElement).style.background = 'rgba(255,152,18,0.15)';
+                      (e.currentTarget as HTMLElement).style.color = '#FF9812';
+                    }}
+                  >
+                    <Maximize2 className="w-3.5 h-3.5" />
+                    <span>VIEW CASE STUDY</span>
+                  </button>
+
+                  {project.github && (
+                    <a
+                      href={project.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full font-display text-xs tracking-widest text-white/60 hover:text-white hover:bg-white/10 transition-all border border-white/10"
+                    >
+                      <GithubIcon className="w-3.5 h-3.5" />
+                      <span>REPOSITORY</span>
+                      <ArrowUpRight className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                </div>
+              </div>
+
+            </div>
+          </article>
         ))}
       </div>
 
-      {/* Case study modal */}
-      <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} />
+      {/* Case Study Modal */}
+      <ProjectModal
+        project={selectedProject}
+        onClose={() => setSelectedProject(null)}
+      />
     </section>
   );
 };
