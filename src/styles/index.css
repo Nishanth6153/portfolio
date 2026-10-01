@@ -22,6 +22,12 @@
     --text-muted:      #555555;
     --gold-highlight:  #FFD700;
 
+    --living-green:      #6ecf7f;
+    --living-green-bright:#86efac;
+    --living-green-glow: rgba(110,207,127,0.22);
+    --living-moss:       #27412c;
+    --spore-gold:        #facc15;
+    
     /* Legacy compat */
     --bg-primary: #0D0D0D;
     --bg-surface: #111111;
@@ -74,6 +80,11 @@
   .font-display {
     font-family: 'Bebas Neue', sans-serif;
     letter-spacing: 0.03em;
+  }
+
+  /* Sylva Living World font — Lexend */
+  .font-lexend {
+    font-family: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
   /* Body / UI sans-serif — Inter */
@@ -340,4 +351,5 @@
 .animate-float    { animation: float-gentle 5s ease-in-out infinite; }
 .animate-pulse-or { animation: pulse-orange 2.5s ease-in-out infinite; }
 .animate-spin-slow { animation: spin-slow 20s linear infinite; }
-.animate-marquee  { animation: marquee-left 28s linear infinite; }
+.animate-marquee  { animation: marquee-left 22s linear infinite; }
+.animate-marquee-slow { animation: marquee-left 38s linear infinite; }

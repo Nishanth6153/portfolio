@@ -2,19 +2,23 @@ import React, { useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-gsap.registerPlugin(ScrollTrigger);
+// Register GSAP plugins safely
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ScrollHeading: Masked line/word reveal coordinated with scroll position
+// 1. ScrollHeading — Masked Line / Word Reveal with Depth & Perspective
 // ─────────────────────────────────────────────────────────────────────────────
-interface ScrollHeadingProps {
+export interface ScrollHeadingProps {
   children: React.ReactNode;
-  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'span' | 'div';
+  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'div' | 'p';
   className?: string;
   style?: React.CSSProperties;
   stagger?: number;
   delay?: number;
   id?: string;
+  variant?: 'clip' | 'perspective' | 'mask';
 }
 
 export const ScrollHeading: React.FC<ScrollHeadingProps> = ({
@@ -25,111 +29,148 @@ export const ScrollHeading: React.FC<ScrollHeadingProps> = ({
   stagger = 0.08,
   delay = 0,
   id,
+  variant = 'perspective',
 }) => {
   const containerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const el = containerRef.current;
-    if (!el) return;
+    if (!el || typeof window === 'undefined') return;
 
-    // Check prefers-reduced-motion
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       return;
     }
 
-    const targets = el.querySelectorAll('.scroll-heading-line');
-    if (!targets.length) return;
+    const lines = el.querySelectorAll<HTMLElement>('.heading-line-inner');
+    if (!lines.length) return;
 
     const ctx = gsap.context(() => {
-      gsap.fromTo(
-        targets,
-        {
-          y: '105%',
-          opacity: 0,
-          filter: 'blur(8px)',
-          rotateX: -10,
-        },
-        {
-          y: '0%',
-          opacity: 1,
-          filter: 'blur(0px)',
-          rotateX: 0,
-          duration: 0.95,
-          delay,
-          stagger,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: el,
-            start: 'top 88%',
-            end: 'bottom 40%',
-            toggleActions: 'play reverse play reverse',
+      if (variant === 'clip') {
+        gsap.fromTo(
+          lines,
+          {
+            clipPath: 'inset(100% 0 0 0)',
+            y: 40,
+            opacity: 0,
           },
-        }
-      );
+          {
+            clipPath: 'inset(0% 0 0 0)',
+            y: 0,
+            opacity: 1,
+            duration: 1.05,
+            delay,
+            stagger,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: el,
+              start: 'top 88%',
+              end: 'bottom 35%',
+              toggleActions: 'play reverse play reverse',
+            },
+          }
+        );
+      } else {
+        // Perspective reveal with subtle 3D tilt & blur dissipation
+        gsap.fromTo(
+          lines,
+          {
+            yPercent: 105,
+            rotateX: -14,
+            opacity: 0,
+            filter: 'blur(6px)',
+          },
+          {
+            yPercent: 0,
+            rotateX: 0,
+            opacity: 1,
+            filter: 'blur(0px)',
+            duration: 1.1,
+            delay,
+            stagger,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: el,
+              start: 'top 90%',
+              end: 'bottom 30%',
+              toggleActions: 'play reverse play reverse',
+            },
+          }
+        );
+      }
     }, el);
 
     return () => ctx.revert();
-  }, [delay, stagger]);
+  }, [delay, stagger, variant]);
 
-  // If children is a string or array of strings, we split lines by <br/> or line elements
-  return (
-    <Component
-      ref={containerRef as any}
-      id={id}
-      className={`overflow-hidden ${className}`}
-      style={style}
-    >
-      {React.Children.map(children, (child, idx) => {
-        if (typeof child === 'string') {
-          return (
-            <span key={idx} className="block overflow-hidden">
-              <span className="scroll-heading-line inline-block will-change-transform">
-                {child}
-              </span>
-            </span>
-          );
-        }
+  // Recursively format children into line wraps
+  const renderLines = () => {
+    return React.Children.map(children, (child, idx) => {
+      if (typeof child === 'string' || typeof child === 'number') {
         return (
-          <span key={idx} className="block overflow-hidden">
-            <span className="scroll-heading-line inline-block will-change-transform">
+          <span key={idx} className="block overflow-hidden pb-0.5">
+            <span className="heading-line-inner inline-block will-change-transform transform-gpu">
               {child}
             </span>
           </span>
         );
-      })}
+      }
+      return (
+        <span key={idx} className="block overflow-hidden pb-0.5">
+          <span className="heading-line-inner inline-block will-change-transform transform-gpu">
+            {child}
+          </span>
+        </span>
+      );
+    });
+  };
+
+  return (
+    <Component
+      ref={containerRef as any}
+      id={id}
+      className={`relative ${className}`}
+      style={{ perspective: '1000px', ...style }}
+    >
+      {renderLines()}
     </Component>
   );
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ScrollParagraph: Progressive word-by-word luminous illumination on scroll
+// 2. ScrollParagraph — Progressive Luminous Word Reveal with Scrub
 // ─────────────────────────────────────────────────────────────────────────────
-interface ScrollParagraphProps {
-  text: string;
+export interface ScrollParagraphProps {
+  text?: string;
+  children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
   highlightWords?: string[];
   highlightColor?: string;
+  scrubSpeed?: number | boolean;
 }
 
 export const ScrollParagraph: React.FC<ScrollParagraphProps> = ({
   text,
+  children,
   className = '',
   style,
   highlightWords = [],
   highlightColor = '#FF9812',
+  scrubSpeed = 0.7,
 }) => {
   const containerRef = useRef<HTMLParagraphElement>(null);
 
+  const rawText = text || (typeof children === 'string' ? children : '');
+
   useEffect(() => {
     const el = containerRef.current;
-    if (!el) return;
+    if (!el || typeof window === 'undefined') return;
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       return;
     }
 
-    const words = el.querySelectorAll('.scroll-word');
+    const words = el.querySelectorAll<HTMLElement>('.scroll-word-item');
     if (!words.length) return;
 
     const ctx = gsap.context(() => {
@@ -137,29 +178,37 @@ export const ScrollParagraph: React.FC<ScrollParagraphProps> = ({
         words,
         {
           opacity: 0.22,
-          filter: 'blur(2.5px)',
+          filter: 'blur(3px)',
           y: 4,
         },
         {
           opacity: 1,
           filter: 'blur(0px)',
           y: 0,
-          stagger: 0.03,
+          stagger: 0.035,
           ease: 'power1.out',
           scrollTrigger: {
             trigger: el,
-            start: 'top 82%',
+            start: 'top 85%',
             end: 'bottom 45%',
-            scrub: 0.8,
+            scrub: scrubSpeed,
           },
         }
       );
     }, el);
 
     return () => ctx.revert();
-  }, [text]);
+  }, [rawText, scrubSpeed]);
 
-  const words = text.split(' ');
+  if (!rawText) {
+    return (
+      <p ref={containerRef} className={className} style={style}>
+        {children}
+      </p>
+    );
+  }
+
+  const words = rawText.split(/\s+/);
 
   return (
     <p
@@ -168,22 +217,84 @@ export const ScrollParagraph: React.FC<ScrollParagraphProps> = ({
       style={style}
     >
       {words.map((word, i) => {
-        // Strip punctuation for matching
-        const cleanWord = word.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+        const clean = word.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
         const isHighlight = highlightWords.some(
-          (hw) => hw.toLowerCase() === cleanWord
+          (hw) => hw.toLowerCase() === clean
         );
 
         return (
           <span
             key={i}
-            className="scroll-word inline-block mr-[0.28em] will-change-transform transition-colors duration-200"
-            style={isHighlight ? { color: highlightColor, fontWeight: 600 } : undefined}
+            className="scroll-word-item inline-block mr-[0.28em] will-change-transform transition-colors duration-200"
+            style={isHighlight ? { color: highlightColor, fontWeight: 500 } : undefined}
           >
             {word}
           </span>
         );
       })}
     </p>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 3. ScrollMaskReveal — ThreeUI-inspired Organic Curtain Reveal
+// ─────────────────────────────────────────────────────────────────────────────
+export interface ScrollMaskRevealProps {
+  children: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+  delay?: number;
+  borderRadius?: string;
+}
+
+export const ScrollMaskReveal: React.FC<ScrollMaskRevealProps> = ({
+  children,
+  className = '',
+  style,
+  delay = 0,
+  borderRadius = '20px',
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof window === 'undefined') return;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        el,
+        {
+          clipPath: `inset(100% 0 0 0 round ${borderRadius})`,
+          y: 35,
+          opacity: 0,
+        },
+        {
+          clipPath: `inset(0% 0 0 0 round ${borderRadius})`,
+          y: 0,
+          opacity: 1,
+          duration: 1.1,
+          delay,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 88%',
+            end: 'bottom 35%',
+            toggleActions: 'play reverse play reverse',
+          },
+        }
+      );
+    }, el);
+
+    return () => ctx.revert();
+  }, [delay, borderRadius]);
+
+  return (
+    <div ref={ref} className={`will-change-transform ${className}`} style={style}>
+      {children}
+    </div>
   );
 };

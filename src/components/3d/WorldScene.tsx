@@ -1,93 +1,82 @@
 import React, { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { Environment, MeshDistortMaterial, Float } from '@react-three/drei';
+import { Float } from '@react-three/drei';
 import * as THREE from 'three';
 
-// ────────────────────────────────────────────────────────────────────────────
-// Morphing central blob — distorts organically using MeshDistortMaterial
-// ────────────────────────────────────────────────────────────────────────────
-function OrangeBlob({ scrollProgress }: { scrollProgress: React.MutableRefObject<number> }) {
-  const meshRef = useRef<THREE.Mesh>(null!);
-
-  useFrame((state) => {
-    if (!meshRef.current) return;
-    const t = state.clock.getElapsedTime();
-    const sp = scrollProgress.current;
-
-    // Rotate continuously, scroll tilts it
-    meshRef.current.rotation.x = Math.sin(t * 0.3) * 0.2 + sp * Math.PI * 0.5;
-    meshRef.current.rotation.y = t * 0.15 + sp * Math.PI;
-    meshRef.current.rotation.z = Math.cos(t * 0.2) * 0.15;
-
-    // Scale down as user scrolls
-    const scale = 1.0 - sp * 0.35;
-    meshRef.current.scale.setScalar(scale);
-
-    // Drift upward on scroll
-    meshRef.current.position.y = -sp * 3;
-    meshRef.current.position.x = Math.sin(t * 0.1) * 0.15;
-  });
-
-  return (
-    <Float speed={1.5} rotationIntensity={0.3} floatIntensity={0.6}>
-      <mesh ref={meshRef} castShadow>
-        <icosahedronGeometry args={[1.6, 4]} />
-        <MeshDistortMaterial
-          color="#FF9812"
-          emissive="#E8820A"
-          emissiveIntensity={0.25}
-          metalness={0.6}
-          roughness={0.15}
-          distort={0.45}
-          speed={2.5}
-          transparent
-          opacity={0.92}
-          envMapIntensity={1.2}
-        />
-      </mesh>
-    </Float>
-  );
+// ──────────────────────────────────────────────────────────────────────────────
+// Utility: build a smooth Catmull-Rom spline tube
+// ──────────────────────────────────────────────────────────────────────────────
+function makeTube(pts: THREE.Vector3[], segments = 64, radius = 0.1, radialSegs = 12) {
+  const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal', 0.5);
+  return new THREE.TubeGeometry(curve, segments, radius, radialSegs, false);
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// Twisted ribbon / wire strands — like Reference 2 metallic wires
-// ────────────────────────────────────────────────────────────────────────────
-function TwistedRibbons({ scrollProgress }: { scrollProgress: React.MutableRefObject<number> }) {
+// ──────────────────────────────────────────────────────────────────────────────
+// 1. GRAND FOREST TRUNKS — Towering botanical silhouettes framing the canvas
+// ──────────────────────────────────────────────────────────────────────────────
+function ForestSilhouettes({ scrollProgress }: { scrollProgress: React.MutableRefObject<number> }) {
   const groupRef = useRef<THREE.Group>(null!);
 
-  const ribbons = useMemo(() => {
-    const items = [];
-    const count = 14;
-    for (let i = 0; i < count; i++) {
-      const angle = (i / count) * Math.PI * 2;
-      const radius = 1.2 + (i % 3) * 0.4;
-      const heightOffset = (Math.random() - 0.5) * 4;
-      const twistFactor = 0.8 + Math.random() * 1.5;
+  const trunks = useMemo(() => {
+    const list: { geo: THREE.CylinderGeometry; pos: [number, number, number]; rot: [number, number, number]; scale: [number, number, number]; color: string }[] = [];
 
-      // Create a curved tube path
-      const points: THREE.Vector3[] = [];
-      const segments = 40;
-      for (let j = 0; j <= segments; j++) {
-        const t = j / segments;
-        const theta = angle + t * twistFactor * Math.PI * 2;
-        const x = Math.cos(theta) * radius * (1 - t * 0.3);
-        const z = Math.sin(theta) * radius * (1 - t * 0.3);
-        const y = heightOffset + (t - 0.5) * 5.5 + Math.sin(t * Math.PI * 3) * 0.3;
-        points.push(new THREE.Vector3(x, y, z));
-      }
+    // Far-left towering trunk
+    list.push({
+      geo: new THREE.CylinderGeometry(0.18, 0.36, 18, 8, 1),
+      pos: [-5.8, -2, -4.5],
+      rot: [0, 0.2, -0.05],
+      scale: [1, 1, 1],
+      color: '#1a1610',
+    });
+    // Near-left mid trunk
+    list.push({
+      geo: new THREE.CylinderGeometry(0.12, 0.26, 14, 8, 1),
+      pos: [-4.2, -3, -2.5],
+      rot: [0, -0.1, 0.04],
+      scale: [1, 1, 1],
+      color: '#221c14',
+    });
+    // Far-right grand trunk
+    list.push({
+      geo: new THREE.CylinderGeometry(0.22, 0.44, 20, 8, 1),
+      pos: [5.6, -1.5, -5.0],
+      rot: [0, 0.3, 0.06],
+      scale: [1, 1, 1],
+      color: '#18140e',
+    });
+    // Near-right slender trunk
+    list.push({
+      geo: new THREE.CylinderGeometry(0.09, 0.20, 12, 7, 1),
+      pos: [4.0, -4, -2.2],
+      rot: [0, -0.2, -0.03],
+      scale: [1, 1, 1],
+      color: '#2a2018',
+    });
+    // Deep background center trunk
+    list.push({
+      geo: new THREE.CylinderGeometry(0.14, 0.28, 16, 8, 1),
+      pos: [0.8, -3.5, -7.0],
+      rot: [0, 0, 0],
+      scale: [1, 1, 1],
+      color: '#141010',
+    });
+    // Extra accent trunks
+    list.push({
+      geo: new THREE.CylinderGeometry(0.07, 0.15, 9, 7, 1),
+      pos: [-2.8, -5, -3.0],
+      rot: [0.04, 0.15, 0.06],
+      scale: [1, 1, 1],
+      color: '#1e1a12',
+    });
+    list.push({
+      geo: new THREE.CylinderGeometry(0.06, 0.13, 8, 6, 1),
+      pos: [2.5, -5.5, -3.5],
+      rot: [-0.03, -0.12, -0.04],
+      scale: [1, 1, 1],
+      color: '#1c1810',
+    });
 
-      const curve = new THREE.CatmullRomCurve3(points);
-      const tubeGeo = new THREE.TubeGeometry(curve, 40, 0.015 + Math.random() * 0.02, 6, false);
-
-      items.push({
-        geo: tubeGeo,
-        color: i % 3 === 0 ? '#FF9812' : i % 3 === 1 ? '#FFD700' : '#C0A050',
-        emissive: i % 3 === 0 ? '#FF5500' : '#FF8800',
-        opacity: 0.5 + (i % 4) * 0.12,
-        speed: 0.08 + (i % 5) * 0.02,
-      });
-    }
-    return items;
+    return list;
   }, []);
 
   useFrame((state) => {
@@ -95,30 +84,21 @@ function TwistedRibbons({ scrollProgress }: { scrollProgress: React.MutableRefOb
     const t = state.clock.getElapsedTime();
     const sp = scrollProgress.current;
 
-    // Group rotates and rises with scroll
-    groupRef.current.rotation.y = t * 0.04 + sp * Math.PI * 0.8;
-    groupRef.current.rotation.x = sp * 0.4 + Math.sin(t * 0.1) * 0.05;
-    groupRef.current.position.y = -sp * 2.0;
-
-    // Stretch the group vertically as scroll progresses (Ref 2 style)
-    const stretchY = 1.0 + sp * 1.8;
-    const compressXZ = 1.0 - sp * 0.25;
-    groupRef.current.scale.set(compressXZ, stretchY, compressXZ);
+    // Subtle breathing sway
+    groupRef.current.rotation.y = Math.sin(t * 0.06) * 0.012 + sp * 0.15;
+    groupRef.current.position.y = -sp * 2.0 + Math.sin(t * 0.15) * 0.015;
   });
 
   return (
     <group ref={groupRef}>
-      {ribbons.map((ribbon, i) => (
-        <mesh key={i} geometry={ribbon.geo}>
+      {trunks.map((t, i) => (
+        <mesh key={i} position={t.pos} rotation={t.rot as any} scale={t.scale}>
+          <primitive object={t.geo} />
           <meshStandardMaterial
-            color={ribbon.color}
-            emissive={ribbon.emissive}
-            emissiveIntensity={0.5}
-            metalness={0.85}
-            roughness={0.05}
-            transparent
-            opacity={ribbon.opacity}
-            side={THREE.DoubleSide}
+            color={t.color}
+            roughness={0.9}
+            metalness={0.04}
+            envMapIntensity={0.2}
           />
         </mesh>
       ))}
@@ -126,253 +106,408 @@ function TwistedRibbons({ scrollProgress }: { scrollProgress: React.MutableRefOb
   );
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// Particle field — ambient orange stars in the background
-// ────────────────────────────────────────────────────────────────────────────
-function ParticleField({ scrollProgress }: { scrollProgress: React.MutableRefObject<number> }) {
-  const meshRef = useRef<THREE.Points>(null!);
-  const count = 600;
+// ──────────────────────────────────────────────────────────────────────────────
+// 2. LIVING ROOT NETWORK — Organic Catmull-Rom botanical vine system
+// ──────────────────────────────────────────────────────────────────────────────
+function LivingRoots({ scrollProgress }: { scrollProgress: React.MutableRefObject<number> }) {
+  const rootGroupRef = useRef<THREE.Group>(null!);
+
+  const roots = useMemo(() => {
+    const list: {
+      geo: THREE.TubeGeometry;
+      color: string;
+      emissive: string;
+      roughness: number;
+      metalness: number;
+      opacity: number;
+      emissiveIntensity: number;
+    }[] = [];
+
+    // Central sweeping root trunk
+    list.push({
+      geo: makeTube([
+        new THREE.Vector3(-4.0, 5.2, -1.8),
+        new THREE.Vector3(-2.8, 2.8, -0.7),
+        new THREE.Vector3(-1.3, 0.5, 0.5),
+        new THREE.Vector3(0.5, -1.5, -0.2),
+        new THREE.Vector3(1.9, -4.0, -1.3),
+        new THREE.Vector3(2.8, -7.5, -2.2),
+      ], 80, 0.14, 14),
+      color: '#2a2218',
+      emissive: '#1a1410',
+      roughness: 0.68,
+      metalness: 0.12,
+      opacity: 0.97,
+      emissiveIntensity: 0.25,
+    });
+
+    // Moss sleeve on central trunk
+    list.push({
+      geo: makeTube([
+        new THREE.Vector3(-2.7, 2.6, -0.62),
+        new THREE.Vector3(-1.25, 0.4, 0.48),
+        new THREE.Vector3(0.4, -1.55, -0.18),
+        new THREE.Vector3(1.75, -3.85, -1.15),
+      ], 52, 0.155, 11),
+      color: '#2d5a36',
+      emissive: '#162a1c',
+      roughness: 0.88,
+      metalness: 0.04,
+      opacity: 0.78,
+      emissiveIntensity: 0.35,
+    });
+
+    // Right flanking vine
+    list.push({
+      geo: makeTube([
+        new THREE.Vector3(3.4, 4.5, -2.2),
+        new THREE.Vector3(2.6, 2.0, -0.9),
+        new THREE.Vector3(2.1, -0.3, 0.3),
+        new THREE.Vector3(2.4, -2.6, -0.6),
+        new THREE.Vector3(1.4, -5.8, -2.0),
+      ], 55, 0.082, 10),
+      color: '#342a20',
+      emissive: '#3d2508',
+      roughness: 0.55,
+      metalness: 0.22,
+      opacity: 0.90,
+      emissiveIntensity: 0.30,
+    });
+
+    // Left deep background vine
+    list.push({
+      geo: makeTube([
+        new THREE.Vector3(-4.5, 3.5, -3.5),
+        new THREE.Vector3(-3.0, 1.0, -2.2),
+        new THREE.Vector3(-2.6, -1.4, -1.6),
+        new THREE.Vector3(-3.4, -4.8, -2.8),
+      ], 44, 0.070, 8),
+      color: '#1e2318',
+      emissive: '#142018',
+      roughness: 0.72,
+      metalness: 0.08,
+      opacity: 0.82,
+      emissiveIntensity: 0.20,
+    });
+
+    // Amber bioluminescent tendrils (6 filaments)
+    for (let i = 0; i < 7; i++) {
+      const angle = (i / 7) * Math.PI * 2;
+      const r = 1.8 + (i % 3) * 0.55;
+      const pts = [
+        new THREE.Vector3(Math.cos(angle) * r, 2.8 - i * 1.0, (i % 3) * 0.5 - 1.1),
+        new THREE.Vector3(Math.cos(angle + 0.85) * (r * 0.8), 1.2 - i * 1.0, (i % 2) * 0.35),
+        new THREE.Vector3(Math.cos(angle + 1.6) * (r * 1.15), -0.6 - i * 1.0, -0.55),
+      ];
+      list.push({
+        geo: makeTube(pts, 30, 0.026, 6),
+        color: i % 2 === 0 ? '#FF9812' : '#6ecf7f',
+        emissive: i % 2 === 0 ? '#CC6A00' : '#2d5a36',
+        roughness: 0.32,
+        metalness: 0.65,
+        opacity: 0.60 + Math.sin(i) * 0.12,
+        emissiveIntensity: 1.6 + Math.cos(i) * 0.4,
+      });
+    }
+
+    // Extra crossing root — adds natural chaos
+    list.push({
+      geo: makeTube([
+        new THREE.Vector3(0.5, 1.0, 0.8),
+        new THREE.Vector3(-0.8, -0.5, 0.3),
+        new THREE.Vector3(-2.0, -2.0, -0.4),
+        new THREE.Vector3(-1.2, -4.5, -1.5),
+      ], 40, 0.055, 8),
+      color: '#302818',
+      emissive: '#1e1808',
+      roughness: 0.62,
+      metalness: 0.15,
+      opacity: 0.88,
+      emissiveIntensity: 0.18,
+    });
+
+    return list;
+  }, []);
+
+  useFrame((state) => {
+    if (!rootGroupRef.current) return;
+    const t = state.clock.getElapsedTime();
+    const sp = scrollProgress.current;
+
+    // Organic breathing
+    rootGroupRef.current.rotation.y = Math.sin(t * 0.16) * 0.042 + sp * 0.26;
+    rootGroupRef.current.rotation.x = Math.cos(t * 0.12) * 0.028 + sp * 0.10;
+    rootGroupRef.current.position.y = -sp * 3.8 + Math.sin(t * 0.22) * 0.035;
+  });
+
+  return (
+    <group ref={rootGroupRef}>
+      {roots.map((item, idx) => (
+        <mesh key={idx} geometry={item.geo}>
+          <meshStandardMaterial
+            color={item.color}
+            emissive={item.emissive}
+            emissiveIntensity={item.emissiveIntensity}
+            roughness={item.roughness}
+            metalness={item.metalness}
+            transparent
+            opacity={item.opacity}
+          />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// 3. VOLUMETRIC SPORE FIELD — Bio-luminescent atmospheric pollen ecosystem
+// ──────────────────────────────────────────────────────────────────────────────
+function SporePollenField({
+  scrollProgress,
+  mouseRef,
+}: {
+  scrollProgress: React.MutableRefObject<number>;
+  mouseRef: React.MutableRefObject<{ x: number; y: number }>;
+}) {
+  const pointsRef = useRef<THREE.Points>(null!);
+  const count = 1100;
 
   const [positions, colors] = useMemo(() => {
     const pos = new Float32Array(count * 3);
     const col = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) {
-      pos[i * 3]     = (Math.random() - 0.5) * 18;
-      pos[i * 3 + 1] = (Math.random() - 0.5) * 18;
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 10;
 
-      // Orange to amber color range
-      const r = 0.9 + Math.random() * 0.1;
-      const g = 0.45 + Math.random() * 0.35;
-      const b = 0.0 + Math.random() * 0.1;
-      col[i * 3]     = r;
-      col[i * 3 + 1] = g;
-      col[i * 3 + 2] = b;
+    for (let i = 0; i < count; i++) {
+      pos[i * 3]     = (Math.random() - 0.5) * 26;
+      pos[i * 3 + 1] = (Math.random() - 0.5) * 32;
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 16 - 1.5;
+
+      // 55% warm amber/gold pollen, 30% vibrant emerald, 15% deep red-orange
+      const rand = Math.random();
+      if (rand > 0.45) {
+        // Amber / gold
+        col[i * 3]     = 1.0;
+        col[i * 3 + 1] = 0.60 + Math.random() * 0.28;
+        col[i * 3 + 2] = 0.08 + Math.random() * 0.12;
+      } else if (rand > 0.15) {
+        // Emerald green
+        col[i * 3]     = 0.38 + Math.random() * 0.18;
+        col[i * 3 + 1] = 0.85 + Math.random() * 0.15;
+        col[i * 3 + 2] = 0.45 + Math.random() * 0.22;
+      } else {
+        // Warm white-cream
+        col[i * 3]     = 0.9 + Math.random() * 0.1;
+        col[i * 3 + 1] = 0.85 + Math.random() * 0.12;
+        col[i * 3 + 2] = 0.6 + Math.random() * 0.2;
+      }
     }
+
     return [pos, col];
   }, []);
 
   useFrame((state) => {
-    if (!meshRef.current) return;
+    if (!pointsRef.current) return;
     const t = state.clock.getElapsedTime();
     const sp = scrollProgress.current;
-    meshRef.current.rotation.y = t * 0.008;
-    meshRef.current.rotation.x = sp * 0.3;
-    meshRef.current.position.z = -sp * 2;
+    const mx = mouseRef.current.x;
+    const my = mouseRef.current.y;
+
+    pointsRef.current.rotation.y = t * 0.012 + mx * 0.14;
+    pointsRef.current.rotation.x = Math.sin(t * 0.009) * 0.07 + my * 0.10;
+    pointsRef.current.position.y = -sp * 5.0;
+    pointsRef.current.position.x = mx * 0.45;
   });
 
   return (
-    <points ref={meshRef}>
+    <points ref={pointsRef}>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
         <bufferAttribute attach="attributes-color" args={[colors, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        size={0.035}
+        size={0.046}
         vertexColors
         transparent
-        opacity={0.7}
+        opacity={0.82}
         sizeAttenuation
         depthWrite={false}
+        blending={THREE.AdditiveBlending}
       />
     </points>
   );
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// Floating geometric rings — orbit the blob
-// ────────────────────────────────────────────────────────────────────────────
-function OrbitalRings({ scrollProgress }: { scrollProgress: React.MutableRefObject<number> }) {
-  const ring1 = useRef<THREE.Mesh>(null!);
-  const ring2 = useRef<THREE.Mesh>(null!);
-  const ring3 = useRef<THREE.Mesh>(null!);
+// ──────────────────────────────────────────────────────────────────────────────
+// 4. GROUND PLANE — Organic mossy forest floor with emissive glow pools
+// ──────────────────────────────────────────────────────────────────────────────
+function ForestFloor({ scrollProgress }: { scrollProgress: React.MutableRefObject<number> }) {
+  const ref = useRef<THREE.Group>(null!);
 
-  useFrame((state) => {
-    const t = state.clock.getElapsedTime();
+  useFrame(() => {
+    if (!ref.current) return;
     const sp = scrollProgress.current;
-
-    if (ring1.current) {
-      ring1.current.rotation.x = t * 0.4 + sp * 2;
-      ring1.current.rotation.y = t * 0.2;
-      ring1.current.scale.setScalar(1 - sp * 0.6);
-      ring1.current.position.y = -sp * 2;
-    }
-    if (ring2.current) {
-      ring2.current.rotation.x = -t * 0.3 + sp * 1.5;
-      ring2.current.rotation.z = t * 0.25;
-      ring2.current.scale.setScalar(1 - sp * 0.5);
-      ring2.current.position.y = -sp * 2;
-    }
-    if (ring3.current) {
-      ring3.current.rotation.y = t * 0.5;
-      ring3.current.rotation.x = Math.PI / 4 + sp;
-      ring3.current.scale.setScalar(1 - sp * 0.7);
-      ring3.current.position.y = -sp * 2;
-    }
+    ref.current.position.y = -8.5 - sp * 1.5;
   });
 
   return (
-    <group>
-      <mesh ref={ring1}>
-        <torusGeometry args={[2.3, 0.012, 8, 120]} />
+    <group ref={ref}>
+      {/* Dark mossy ground plane */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
+        <planeGeometry args={[40, 40, 1, 1]} />
         <meshStandardMaterial
-          color="#FF9812" emissive="#FF5500" emissiveIntensity={0.6}
-          metalness={0.9} roughness={0.05} transparent opacity={0.5}
+          color="#0e1208"
+          roughness={0.98}
+          metalness={0}
         />
       </mesh>
-      <mesh ref={ring2}>
-        <torusGeometry args={[2.9, 0.008, 8, 120]} />
-        <meshStandardMaterial
-          color="#FFD700" emissive="#FF8800" emissiveIntensity={0.4}
-          metalness={0.85} roughness={0.08} transparent opacity={0.35}
+
+      {/* Orange glow pool — amber campfire energy */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0.5, 0.01, 1.5]}>
+        <circleGeometry args={[2.2, 32]} />
+        <meshBasicMaterial
+          color="#FF6000"
+          transparent
+          opacity={0.06}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
         />
       </mesh>
-      <mesh ref={ring3}>
-        <torusGeometry args={[1.7, 0.018, 8, 80]} />
-        <meshStandardMaterial
-          color="#FFB347" emissive="#FF6600" emissiveIntensity={0.5}
-          metalness={0.9} roughness={0.04} transparent opacity={0.45}
+
+      {/* Green bioluminescent glow pool */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-1.5, 0.01, 0.5]}>
+        <circleGeometry args={[1.6, 32]} />
+        <meshBasicMaterial
+          color="#3ecf60"
+          transparent
+          opacity={0.05}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
         />
       </mesh>
     </group>
   );
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// Connected Knowledge Lattice — Restrained 3D Neural / Systems Metaphor for About
-// ────────────────────────────────────────────────────────────────────────────
-function ConnectedKnowledgeLattice({
-  scrollProgress,
-}: {
-  scrollProgress: React.MutableRefObject<number>;
-}) {
+// ──────────────────────────────────────────────────────────────────────────────
+// 5. BIOLUMINESCENT SPROUT NODES — Botanical intelligence anchor points
+// ──────────────────────────────────────────────────────────────────────────────
+function SproutNodes({ scrollProgress }: { scrollProgress: React.MutableRefObject<number> }) {
   const groupRef = useRef<THREE.Group>(null!);
 
-  const { nodePositions, lineIndices } = useMemo(() => {
-    const rawNodes = [
-      [0.0, 1.2, 0.0],
-      [-1.4, 0.6, 0.4],
-      [1.3, 0.8, -0.3],
-      [-0.8, -0.5, 0.8],
-      [1.1, -0.4, 0.5],
-      [-1.8, -1.2, -0.5],
-      [0.2, -1.4, -0.2],
-      [1.7, -1.0, -0.8],
-      [-0.3, 2.0, -0.6],
-      [1.5, 1.8, 0.4],
-      [-2.1, 0.2, 0.6],
-      [2.2, 0.1, -0.5],
-      [-0.5, -2.1, 0.3],
-      [0.9, -2.3, -0.4],
-    ];
-
-    const lines: number[] = [];
-    for (let i = 0; i < rawNodes.length; i++) {
-      for (let j = i + 1; j < rawNodes.length; j++) {
-        const dx = rawNodes[i][0] - rawNodes[j][0];
-        const dy = rawNodes[i][1] - rawNodes[j][1];
-        const dz = rawNodes[i][2] - rawNodes[j][2];
-        const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        if (dist < 2.0) {
-          lines.push(i, j);
-        }
-      }
-    }
-
-    return {
-      nodePositions: rawNodes.map((p) => new THREE.Vector3(p[0], p[1], p[2])),
-      lineIndices: lines,
-    };
-  }, []);
-
-  const lineGeometry = useMemo(() => {
-    const points: THREE.Vector3[] = [];
-    for (let k = 0; k < lineIndices.length; k += 2) {
-      points.push(nodePositions[lineIndices[k]]);
-      points.push(nodePositions[lineIndices[k + 1]]);
-    }
-    return new THREE.BufferGeometry().setFromPoints(points);
-  }, [nodePositions, lineIndices]);
+  const nodes = useMemo(() => [
+    { pos: [-1.2, 0.5, 0.5], scale: 0.15, color: '#FF9812', em: '#FFB347', emI: 1.8 },
+    { pos: [0.5, -1.5, -0.2], scale: 0.12, color: '#6ecf7f', em: '#86efac', emI: 1.6 },
+    { pos: [2.0, -0.3, 0.3], scale: 0.14, color: '#FF9812', em: '#FFD700', emI: 2.0 },
+    { pos: [-2.7, 2.6, -0.6], scale: 0.11, color: '#6ecf7f', em: '#4ade80', emI: 1.5 },
+    { pos: [1.9, -4.0, -1.3], scale: 0.13, color: '#FF9812', em: '#FF5500', emI: 1.7 },
+    { pos: [-2.5, -1.5, -1.4], scale: 0.10, color: '#6ecf7f', em: '#6ecf7f', emI: 1.4 },
+    { pos: [3.0, 1.5, -1.0], scale: 0.09, color: '#FFB347', em: '#FFD700', emI: 1.3 },
+    { pos: [-0.5, -3.2, 0.2], scale: 0.11, color: '#FF9812', em: '#FFB347', emI: 1.5 },
+  ], []);
 
   useFrame((state) => {
     if (!groupRef.current) return;
     const t = state.clock.getElapsedTime();
     const sp = scrollProgress.current;
 
-    // About section envelope: smoothly blossoms in around 0.05, reaches full presence around 0.12 - 0.22
-    let envelope = 0;
-    if (sp < 0.04) {
-      envelope = 0;
-    } else if (sp < 0.10) {
-      envelope = (sp - 0.04) / 0.06;
-    } else if (sp < 0.24) {
-      envelope = 1.0;
-    } else if (sp < 0.34) {
-      envelope = Math.max(0, 1.0 - (sp - 0.24) / 0.10);
-    } else {
-      envelope = 0;
-    }
+    groupRef.current.position.y = -sp * 3.8;
 
-    // Positioned in right/center depth to complement left-side editorial text
-    groupRef.current.position.x = 1.8 + Math.sin(t * 0.15) * 0.15;
-    groupRef.current.position.y = -0.3 + Math.cos(t * 0.12) * 0.15;
-    groupRef.current.position.z = -0.5;
-
-    // Rotation
-    groupRef.current.rotation.y = t * 0.08 + sp * Math.PI * 0.8;
-    groupRef.current.rotation.x = Math.sin(t * 0.06) * 0.12;
-
-    const currentScale = envelope * 1.25;
-    groupRef.current.scale.setScalar(currentScale);
-    groupRef.current.visible = envelope > 0.01;
+    nodes.forEach((_, i) => {
+      const child = groupRef.current.children[i];
+      if (child) {
+        const pulse = 1.0 + Math.sin(t * 1.6 + i * 1.35) * 0.22;
+        child.scale.setScalar(pulse);
+      }
+    });
   });
 
   return (
     <group ref={groupRef}>
-      {/* Synapse line connections */}
-      <lineSegments geometry={lineGeometry}>
-        <lineBasicMaterial
-          color="#FF9812"
-          transparent
-          opacity={0.4}
-          linewidth={1}
-        />
-      </lineSegments>
-
-      {/* Nodes: small glowing icosahedrons */}
-      {nodePositions.map((pos, idx) => (
-        <group key={idx} position={pos}>
+      {nodes.map((node, i) => (
+        <group key={i} position={node.pos as [number, number, number]}>
+          {/* Core sphere */}
           <mesh>
-            <icosahedronGeometry args={[0.07 + (idx % 3) * 0.02, 1]} />
+            <sphereGeometry args={[node.scale, 16, 16]} />
             <meshStandardMaterial
-              color={idx % 3 === 0 ? '#FF9812' : idx % 3 === 1 ? '#FFD700' : '#FFB347'}
-              emissive={idx % 2 === 0 ? '#FF6600' : '#E8820A'}
-              emissiveIntensity={1.3}
-              metalness={0.85}
-              roughness={0.1}
+              color={node.color}
+              emissive={node.em}
+              emissiveIntensity={node.emI}
+              roughness={0.18}
+              metalness={0.42}
             />
           </mesh>
-          {idx % 4 === 0 && (
-            <mesh>
-              <icosahedronGeometry args={[0.15, 1]} />
-              <meshBasicMaterial
-                color="#FFB347"
-                wireframe
-                transparent
-                opacity={0.45}
-              />
-            </mesh>
-          )}
+          {/* Bio-halo ring */}
+          <mesh rotation={[Math.PI / 4, 0, 0]}>
+            <torusGeometry args={[node.scale * 2.0, 0.008, 8, 32]} />
+            <meshBasicMaterial
+              color={node.em}
+              transparent
+              opacity={0.32}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+            />
+          </mesh>
+          {/* Outer soft halo */}
+          <mesh>
+            <sphereGeometry args={[node.scale * 3.5, 8, 8]} />
+            <meshBasicMaterial
+              color={node.color}
+              transparent
+              opacity={0.04}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+            />
+          </mesh>
         </group>
       ))}
     </group>
   );
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// Camera controller — choreographs camera back and around for About storytelling
-// ────────────────────────────────────────────────────────────────────────────
-function CameraController({
+// ──────────────────────────────────────────────────────────────────────────────
+// 6. GOD RAYS — Volumetric light shafts (simulated via large translucent cones)
+// ──────────────────────────────────────────────────────────────────────────────
+function GodRays() {
+  const ref = useRef<THREE.Group>(null!);
+
+  const rays = useMemo(() => [
+    { pos: [2.0, 8, -4] as [number,number,number], rot: [0.3, 0, 0.25] as [number,number,number], color: '#FFB347', opacity: 0.025, height: 18 },
+    { pos: [-1.5, 7.5, -3] as [number,number,number], rot: [0.2, 0, -0.2] as [number,number,number], color: '#FF9812', opacity: 0.018, height: 15 },
+    { pos: [0.5, 9, -6] as [number,number,number], rot: [0.1, 0, 0.05] as [number,number,number], color: '#6ecf7f', opacity: 0.012, height: 20 },
+  ], []);
+
+  useFrame((state) => {
+    if (!ref.current) return;
+    const t = state.clock.getElapsedTime();
+    ref.current.children.forEach((child, i) => {
+      (child as THREE.Mesh).material && ((child as THREE.Mesh).material as THREE.MeshBasicMaterial).opacity
+        ? null : null;
+      child.rotation.z = Math.sin(t * 0.04 + i * 1.2) * 0.015;
+    });
+  });
+
+  return (
+    <group ref={ref}>
+      {rays.map((ray, i) => (
+        <mesh key={i} position={ray.pos} rotation={ray.rot}>
+          <coneGeometry args={[1.8, ray.height, 6, 1, true]} />
+          <meshBasicMaterial
+            color={ray.color}
+            transparent
+            opacity={ray.opacity}
+            side={THREE.BackSide}
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
+          />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// 7. SYLVA CAMERA CONTROLLER — Cinematic 5-phase scroll journey
+// ──────────────────────────────────────────────────────────────────────────────
+function SylvaCameraController({
   mouseRef,
   scrollProgress,
 }: {
@@ -384,41 +519,64 @@ function CameraController({
     const mx = mouseRef.current.x;
     const my = mouseRef.current.y;
 
-    let targetX = mx * 0.9;
-    let targetY = my * -0.9;
-    let targetZ = 5.0;
+    const dampX = mx * 0.72;
+    const dampY = -my * 0.60;
 
-    if (sp < 0.06) {
-      // Hero view: direct front angle
-      targetZ = 5.0 + sp * 8.0;
-      targetY = -sp * 2.0 + my * -1.0;
-    } else if (sp < 0.24) {
-      // About Section: camera pulls back and pivots, opening space for name & story
-      const progressInAbout = (sp - 0.06) / 0.18;
-      targetX = mx * 0.8 + 0.35 * Math.sin(progressInAbout * Math.PI);
-      targetY = -1.2 - progressInAbout * 0.8 + my * -0.7;
-      targetZ = 6.0 + progressInAbout * 1.5;
+    let targetX = dampX;
+    let targetY = dampY;
+    let targetZ = 5.5;
+    let lookY   = 0;
+
+    if (sp < 0.12) {
+      // 01 HERO — Majestic frontal, roots frame the portrait
+      targetZ = 5.5 + sp * 4.2;
+      targetY = -sp * 1.6 + dampY;
+      targetX = dampX * 0.82;
+      lookY   = -sp * 0.9;
+    } else if (sp < 0.30) {
+      // 02 ABOUT — Gliding right into the living grove
+      const p = (sp - 0.12) / 0.18;
+      targetX = 0.55 * Math.sin(p * Math.PI) + dampX * 0.72;
+      targetY = -1.3 - p * 1.1 + dampY;
+      targetZ = 6.0 + p * 1.3;
+      lookY   = -1.1 - p * 0.7;
+    } else if (sp < 0.52) {
+      // 03 WORK — Wide engineering showcase vista
+      const p = (sp - 0.30) / 0.22;
+      targetX = -0.45 * Math.sin(p * Math.PI) + dampX * 0.62;
+      targetY = -2.4 - p * 1.2 + dampY;
+      targetZ = 7.2 + p * 0.9;
+      lookY   = -2.4 - p * 0.85;
+    } else if (sp < 0.72) {
+      // 04 SKILLS + EXPERIENCE — Through the dense canopy
+      const p = (sp - 0.52) / 0.20;
+      targetX = 0.35 * Math.cos(p * Math.PI) + dampX * 0.52;
+      targetY = -3.6 - p * 1.5 + dampY;
+      targetZ = 7.6 - p * 0.65;
+      lookY   = -3.6 - p * 0.9;
     } else {
-      // Subsequent sections
-      targetZ = 7.5 + (sp - 0.24) * 3.5;
-      targetY = -2.0 - (sp - 0.24) * 1.8 + my * -0.8;
-      targetX = mx * 0.8;
+      // 05 ACHIEVEMENTS + CONTACT — Settling into warm sunset clearing
+      const p = Math.min((sp - 0.72) / 0.28, 1.0);
+      targetX = dampX * 0.42;
+      targetY = -5.1 - p * 1.3 + dampY;
+      targetZ = 6.4 - p * 0.7;
+      lookY   = -5.2 - p * 0.6;
     }
 
-    state.camera.position.x += (targetX - state.camera.position.x) * 0.045;
-    state.camera.position.y += (targetY - state.camera.position.y) * 0.045;
-    state.camera.position.z += (targetZ - state.camera.position.z) * 0.045;
-
-    const lookY = sp < 0.06 ? 0 : -0.7 * (sp / 0.3);
+    // Smooth exponential lerp
+    state.camera.position.x += (targetX - state.camera.position.x) * 0.044;
+    state.camera.position.y += (targetY - state.camera.position.y) * 0.044;
+    state.camera.position.z += (targetZ - state.camera.position.z) * 0.044;
     state.camera.lookAt(0, lookY, 0);
   });
+
   return null;
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// Main exported WorldScene canvas wrapper
-// ────────────────────────────────────────────────────────────────────────────
-interface WorldSceneProps {
+// ──────────────────────────────────────────────────────────────────────────────
+// 8. MAIN WORLDSCENE EXPORT
+// ──────────────────────────────────────────────────────────────────────────────
+export interface WorldSceneProps {
   scrollProgress: React.MutableRefObject<number>;
   mouseRef: React.MutableRefObject<{ x: number; y: number }>;
 }
@@ -426,50 +584,68 @@ interface WorldSceneProps {
 export const WorldScene: React.FC<WorldSceneProps> = ({ scrollProgress, mouseRef }) => {
   return (
     <Canvas
-      camera={{ position: [0, 0, 5], fov: 60, near: 0.1, far: 100 }}
+      camera={{ position: [0, 0, 5.5], fov: 46, near: 0.1, far: 120 }}
       gl={{
         antialias: true,
         alpha: true,
         powerPreference: 'high-performance',
         toneMapping: THREE.ACESFilmicToneMapping,
-        toneMappingExposure: 1.2,
+        toneMappingExposure: 1.25,
       }}
-      shadows={{ type: THREE.PCFShadowMap }}
       dpr={[1, 1.5]}
       style={{ background: 'transparent' }}
     >
-      {/* Lighting */}
-      <ambientLight intensity={0.3} color="#FF9812" />
+      {/* ── Atmospheric Fog (native THREE.Fog via attach) ── */}
+      <fog attach="fog" args={['#0a0a06', 12, 55]} />
+
+      {/* ── Sylva Living World Lighting ── */}
+      {/* Warm amber canopy key light */}
+      <ambientLight intensity={0.38} color="#f0d9a8" />
+
+      {/* Sunbeam directional key */}
       <directionalLight
-        position={[5, 8, 5]}
-        intensity={2.5}
+        position={[7, 12, 5]}
+        intensity={3.2}
         color="#FFB347"
-        castShadow
-        shadow-mapSize={[1024, 1024]}
-      />
-      <pointLight position={[-4, 3, -3]} intensity={1.5} color="#FF6600" />
-      <pointLight position={[4, -3, 3]} intensity={1.0} color="#FFD700" />
-      <spotLight
-        position={[0, 10, 0]}
-        angle={0.5}
-        penumbra={0.8}
-        intensity={2.0}
-        color="#FF9812"
-        castShadow
+        castShadow={false}
       />
 
-      {/* Environment for reflections */}
-      <Environment preset="sunset" />
+      {/* Emerald moss bounce from forest floor */}
+      <pointLight position={[-5, -3, 2]} intensity={2.0} color="#4ecf70" />
 
-      {/* 3D elements */}
-      <OrangeBlob scrollProgress={scrollProgress} />
-      <TwistedRibbons scrollProgress={scrollProgress} />
-      <OrbitalRings scrollProgress={scrollProgress} />
-      <ConnectedKnowledgeLattice scrollProgress={scrollProgress} />
-      <ParticleField scrollProgress={scrollProgress} />
+      {/* Warm amber horizon floor glow */}
+      <pointLight position={[4, -8, 3]} intensity={3.0} color="#FF7800" />
 
-      {/* Camera controller */}
-      <CameraController mouseRef={mouseRef} scrollProgress={scrollProgress} />
+      {/* Cool blue-sky fill from behind */}
+      <directionalLight position={[-6, 5, -5]} intensity={0.6} color="#93c5fd" />
+
+      {/* Secondary warm fill from right */}
+      <pointLight position={[6, 2, 1]} intensity={1.2} color="#FFD070" />
+
+      {/* Deep forest shadow fill */}
+      <pointLight position={[0, -6, 0]} intensity={0.8} color="#FF6020" />
+
+      {/* ── Scene Objects ── */}
+      {/* God ray shafts first (deepest) */}
+      <GodRays />
+
+      {/* Forest silhouettes in background */}
+      <ForestSilhouettes scrollProgress={scrollProgress} />
+
+      {/* Ground plane */}
+      <ForestFloor scrollProgress={scrollProgress} />
+
+      {/* Living root network with gentle Float wrapper */}
+      <Float speed={1.1} rotationIntensity={0.12} floatIntensity={0.20}>
+        <LivingRoots scrollProgress={scrollProgress} />
+        <SproutNodes scrollProgress={scrollProgress} />
+      </Float>
+
+      {/* Atmospheric spore pollen field */}
+      <SporePollenField scrollProgress={scrollProgress} mouseRef={mouseRef} />
+
+      {/* Cinematic camera controller */}
+      <SylvaCameraController mouseRef={mouseRef} scrollProgress={scrollProgress} />
     </Canvas>
   );
 };
