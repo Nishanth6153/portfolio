@@ -2,6 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Armstrong';
+  src: url('/fonts/Armstrong.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Armstrong';
+  src: url('/fonts/Armstrong%20Italic.woff2') format('woff2');
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Armstrong Tilted';
+  src: url('/fonts/Armstrong%20Tilted.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 /* ── Font stack: Bebas Neue (display) + Inter (body) + JetBrains Mono (code) ── */
 /* All loaded via Google Fonts in index.html — no local @font-face needed.       */
 
@@ -22,10 +44,10 @@
     --text-muted:      #555555;
     --gold-highlight:  #FFD700;
 
-    --living-green:      #6ecf7f;
-    --living-green-bright:#86efac;
-    --living-green-glow: rgba(110,207,127,0.22);
-    --living-moss:       #27412c;
+    --living-green:      #62686a;
+    --living-green-bright:#B8BEC0;
+    --living-green-glow: rgba(214,221,226,0.10);
+    --living-moss:       #242725;
     --spore-gold:        #facc15;
     
     /* Legacy compat */
@@ -58,14 +80,13 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    /* Bebas Neue is inherently uppercase/condensed — matches reference image */
-    font-family: 'Bebas Neue', sans-serif;
-    letter-spacing: 0.03em;
+    font-family: 'Armstrong', 'Bebas Neue', sans-serif;
+    letter-spacing: 0;
   }
 
   ::selection {
-    background-color: rgba(255,152,18,0.35);
-    color: #ffffff;
+    background-color: #FF9812;
+    color: #111111;
   }
 
   /* Orange-tinted minimal scrollbar */
@@ -76,11 +97,16 @@
 }
 
 @layer utilities {
+  .viewport-height { min-height: 100vh; min-height: 100dvh; }
+  .viewport-fill { height: 100vh; height: 100dvh; }
   /* Primary display font — Bebas Neue, bold condensed editorial (see reference image) */
   .font-display {
-    font-family: 'Bebas Neue', sans-serif;
-    letter-spacing: 0.03em;
+    font-family: 'Armstrong', 'Bebas Neue', sans-serif;
+    letter-spacing: 0;
   }
+
+  .font-armstrong-italic { font-family: 'Armstrong', sans-serif; font-style: italic; }
+  .font-armstrong-tilted { font-family: 'Armstrong Tilted', 'Armstrong', sans-serif; }
 
   /* Sylva Living World font — Lexend */
   .font-lexend {
@@ -271,6 +297,18 @@
     z-index: 0;
   }
 
+  .world-scene-root { position: relative; width: 100%; height: 100%; background: #111111; }
+  .world-scene-fallback {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    opacity: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at 52% 43%, rgba(255,152,18,0.12), transparent 48%), #111111;
+    transition: opacity 900ms ease;
+  }
+  .world-scene-fallback.is-visible { opacity: 1; }
+
   /* Hero content on top of 3D */
   .hero-content {
     position: relative;
@@ -353,3 +391,127 @@
 .animate-spin-slow { animation: spin-slow 20s linear infinite; }
 .animate-marquee  { animation: marquee-left 22s linear infinite; }
 .animate-marquee-slow { animation: marquee-left 38s linear infinite; }
+
+.sakura-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  perspective: 900px;
+  color: #FAFAF7;
+  background: rgba(5, 6, 8, 0.94);
+  touch-action: none;
+}
+.sakura-river { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.sakura-river::before,
+.sakura-river::after {
+  content: '';
+  position: absolute;
+  inset: 24% -10% 0;
+  background: linear-gradient(180deg, #111312 0%, #090b0b 74%);
+  opacity: .64;
+  clip-path: polygon(0 34%, 14% 22%, 31% 51%, 50% 15%, 69% 47%, 86% 20%, 100% 37%, 100% 100%, 0 100%);
+}
+.sakura-river::after {
+  inset: 39% -8% -4%;
+  opacity: .42;
+  transform: scaleX(-1);
+  clip-path: polygon(0 20%, 18% 42%, 36% 25%, 53% 59%, 72% 30%, 90% 49%, 100% 32%, 100% 100%, 0 100%);
+}
+.sakura-petal {
+  position: absolute;
+  top: -12px;
+  width: var(--petal-size, 6px);
+  height: calc(var(--petal-size, 6px) * 1.55);
+  border-radius: 80% 15% 80% 15%;
+  background: linear-gradient(135deg, rgba(238, 226, 219, .76), rgba(255, 152, 18, .28));
+  opacity: .65;
+  animation: sakura-drift linear infinite;
+  will-change: transform, opacity;
+}
+.sakura-hold {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 148px;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  color: #FAFAF7;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.sakura-hold svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.sakura-hold circle { fill: none; stroke-width: .75; }
+.sakura-ring-track { stroke: rgba(250, 250, 247, .32); }
+.sakura-ring-progress {
+  stroke: #FF9812;
+  stroke-width: 1.35 !important;
+  stroke-dasharray: 283;
+  stroke-dashoffset: 283;
+  filter: drop-shadow(0 0 5px rgba(255, 152, 18, .45));
+}
+.sakura-hold span { position: relative; font: 10px/1 'Armstrong', sans-serif; letter-spacing: .08em; }
+.sakura-hold:focus-visible { outline: 1px solid #FF9812; outline-offset: 8px; }
+.sakura-caption {
+  position: absolute;
+  bottom: 6vh;
+  color: rgba(250, 250, 247, .48);
+  font: 9px/1 'JetBrains Mono', monospace;
+  letter-spacing: .16em;
+}
+.sakura-caption i { display: inline-block; width: 3px; height: 3px; margin: 0 8px 2px; border-radius: 50%; background: #FF9812; }
+@keyframes sakura-drift {
+  to { transform: translate3d(var(--drift, 40px), 112vh, 0) rotate(520deg) translateZ(-80px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sakura-petal { animation: none !important; }
+}
+
+.custom-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #FAFAF7;
+  mix-blend-mode: difference;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+
+
+}
+.custom-cursor.is-visible { opacity: 1; }
+
+.custom-cursor.is-disabled { display: none; }
+[data-magnetic="true"] {
+  transition-property: color, background-color, border-color, box-shadow;
+}
+
+.heading-line-inner, .scroll-word-item {
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.65);
+}
+:focus-visible {
+  outline: 1px solid #FF9812;
+  outline-offset: 4px;
+}
+@media (hover: hover) and (pointer: fine) {
+  html.has-custom-cursor, html.has-custom-cursor a, html.has-custom-cursor button { cursor: none; }
+}
+@media (hover: none), (pointer: coarse) {
+  .custom-cursor { display: none; }
+}
+
+html.entry-locked,
+html.entry-locked body {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}

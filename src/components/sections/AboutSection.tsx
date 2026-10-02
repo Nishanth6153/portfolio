@@ -11,14 +11,14 @@ export const AboutSection: React.FC = () => {
       className="relative py-28 md:py-40 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden"
       aria-labelledby="about-heading"
     >
-      {/* ── Ambient depth lighting (orange & living emerald glows) ── */}
+      {/* ── Ambient depth lighting ── */}
       <div
         className="absolute top-1/4 -left-40 w-96 h-96 rounded-full pointer-events-none"
         style={{ background: 'radial-gradient(circle, rgba(255,152,18,0.12) 0%, transparent 70%)' }}
       />
       <div
         className="absolute bottom-1/3 -right-40 w-[500px] h-[500px] rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(110,207,127,0.06) 0%, transparent 70%)' }}
+        style={{ background: 'radial-gradient(circle, rgba(214,221,226,0.035) 0%, transparent 70%)' }}
       />
 
       {/* ── Section Eyebrow Header ── */}
@@ -81,8 +81,8 @@ export const AboutSection: React.FC = () => {
           {/* Narrative Chapter 02: What I Explore */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#6ecf7f]" />
-              <h3 className="text-xs font-display tracking-widest uppercase text-[#6ecf7f]">
+              <span className="w-2 h-2 rounded-full bg-[#B8BEC0]" />
+              <h3 className="text-xs font-display tracking-widest uppercase text-[#B8BEC0]">
                 Technical Direction &amp; Systems Exploration
               </h3>
             </div>
@@ -90,7 +90,7 @@ export const AboutSection: React.FC = () => {
               className="text-base"
               style={{ color: 'rgba(250,250,247,0.65)' }}
               highlightWords={['deterministic', 'on-device', 'computer', 'vision', 'FastAPI', 'Docker', 'latency']}
-              highlightColor="#6ecf7f"
+              highlightColor="#B8BEC0"
             >
               Where many treat machine learning as black-box experimentation, I approach it through the lens of deterministic systems engineering. My core explorations center on on-device edge computer vision, quantized neural networks (MobileNetV2, TensorFlow Lite), and asynchronous high-throughput backends.
             </ScrollParagraph>
@@ -294,13 +294,13 @@ export const AboutSection: React.FC = () => {
               className="p-7 md:p-8 rounded-3xl space-y-4"
               style={{
                 background: 'rgba(17,17,17,0.75)',
-                border: '1px solid rgba(110,207,127,0.20)',
+                border: '1px solid rgba(214,221,226,0.12)',
                 backdropFilter: 'blur(20px)',
               }}
             >
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#6ecf7f]" />
-                <p className="text-[11px] font-display tracking-widest uppercase text-[#6ecf7f]">
+                <span className="w-2 h-2 rounded-full bg-[#B8BEC0]" />
+                <p className="text-[11px] font-display tracking-widest uppercase text-[#B8BEC0]">
                   CORE SPECIALIZATION AREAS
                 </p>
               </div>
@@ -313,7 +313,7 @@ export const AboutSection: React.FC = () => {
                     desc: 'Optimized MobileNetV2 and TFLite execution on constrained edge devices',
                   },
                   {
-                    icon: <Code className="w-4 h-4 text-[#6ecf7f]" />,
+                    icon: <Code className="w-4 h-4 text-[#B8BEC0]" />,
                     title: 'Asynchronous Full-Stack Backends',
                     desc: 'Sub-50ms REST APIs built with Python, FastAPI, and Supabase PostgreSQL',
                   },
