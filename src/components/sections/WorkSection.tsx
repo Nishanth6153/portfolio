@@ -4,7 +4,7 @@ import { GithubIcon } from '../ui/Icons';
 import { projects } from '../../data/projects';
 import { Project } from '../../types/portfolio';
 import { RevealOnScroll } from '../animations/RevealOnScroll';
-import { ScrollHeading, ScrollMaskReveal } from '../animations/ScrollTypography';
+import { ScrollHeading, ScrollMaskReveal, ScrollParagraph } from '../animations/ScrollTypography';
 import { ProjectModal } from '../ui/ProjectModal';
 import { GlassAiButton } from '../threeui/GlassAiButton';
 
@@ -39,26 +39,22 @@ export const WorkSection: React.FC = () => {
           <span>ENGINEERED</span>
           <span className="text-[#FF9812]">SOLUTIONS.</span>
         </ScrollHeading>
-        <p className="text-sm font-mono-code text-[#FAFAF7]/50 mt-3 max-w-lg">
+        <ScrollParagraph className="text-sm font-mono-code text-[#FAFAF7]/50 mt-3 max-w-lg">
           Autonomous systems, industrial scheduling engines, and edge deep learning architectures built for production reliability.
-        </p>
+        </ScrollParagraph>
       </div>
 
       {/* Projects list */}
       <div className="space-y-8">
         {projects.map((project, idx) => (
-          <ScrollMaskReveal key={project.id} borderRadius="28px" delay={idx * 0.08}>
+          <ScrollMaskReveal key={project.id} borderRadius="0px" delay={idx * 0.08}>
             <article
-              className="project-card group cursor-pointer transition-all duration-300"
+              className="group cursor-pointer py-8 md:py-10 border-b border-white/[0.08] transition-colors duration-300 hover:border-[#FF9812]/30"
+              data-cursor="interactive"
               onClick={() => setSelectedProject(project)}
               aria-labelledby={`project-title-${project.id}`}
-              style={{
-                background: 'linear-gradient(145deg, rgba(20,20,20,0.85) 0%, rgba(13,13,13,0.95) 100%)',
-                border: '1px solid rgba(255,152,18,0.18)',
-                boxShadow: '0 20px 50px rgba(0,0,0,0.45)',
-              }}
             >
-              <div className="p-6 md:p-10">
+              <div className="py-7 md:py-10">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
 
                   {/* Left: Project info */}
@@ -66,10 +62,8 @@ export const WorkSection: React.FC = () => {
                     {/* Number + category */}
                     <div className="flex items-center gap-4">
                       <span
-                        className="font-mono-code text-xs font-bold px-3 py-1 rounded-lg"
+                        className="font-mono-code text-xs font-bold"
                         style={{
-                          background: 'rgba(255,152,18,0.12)',
-                          border: '1px solid rgba(255,152,18,0.30)',
                           color: '#FF9812',
                         }}
                       >
@@ -83,11 +77,7 @@ export const WorkSection: React.FC = () => {
 
                       {project.metrics && project.metrics.length > 0 && (
                         <span
-                          className="ml-auto text-[10px] font-mono-code px-2.5 py-1 rounded-full border border-[#FF9812]/20"
-                          style={{
-                            background: 'rgba(255,152,18,0.06)',
-                            color: '#FFB347',
-                          }}
+                          className="ml-auto text-[10px] font-mono-code text-[#FFB347]"
                         >
                           {project.metrics[0].label}: {project.metrics[0].value}
                         </span>
@@ -98,7 +88,7 @@ export const WorkSection: React.FC = () => {
                     <div>
                       <h3
                         id={`project-title-${project.id}`}
-                        className="text-2xl md:text-3xl font-bold tracking-tight transition-colors duration-300 text-[#FAFAF7] group-hover:text-[#FF9812]"
+                        className="font-display text-3xl md:text-5xl leading-tight transition-colors duration-300 text-[#FAFAF7] group-hover:text-[#FF9812]"
                       >
                         {project.title}
                       </h3>
@@ -108,14 +98,14 @@ export const WorkSection: React.FC = () => {
                     </div>
 
                     {/* Description */}
-                    <p className="text-sm leading-relaxed text-[#FAFAF7]/65">
+                    <ScrollParagraph className="text-sm leading-relaxed text-[#FAFAF7]/65">
                       {project.description}
-                    </p>
+                    </ScrollParagraph>
 
                     {/* Tech stack */}
                     <div className="flex flex-wrap gap-2">
                       {project.technologies.map((tech) => (
-                        <span key={tech} className="skill-tag text-[11px]">{tech}</span>
+                      <span key={tech} className="text-[11px] font-mono-code text-[#FAFAF7]/55 after:content-['/'] after:ml-2 after:text-[#FF9812]/60 last:after:content-none">{tech}</span>
                       ))}
                     </div>
 
@@ -124,7 +114,7 @@ export const WorkSection: React.FC = () => {
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); setSelectedProject(project); }}
-                        className="btn-orange text-xs py-2 px-5 cursor-pointer"
+                        className="inline-flex items-center gap-2 text-xs py-2 text-[#FAFAF7] hover:text-[#FF9812] transition-colors cursor-pointer"
                       >
                         <Maximize2 className="w-3.5 h-3.5" />
                         SYSTEM CASE STUDY
@@ -135,7 +125,7 @@ export const WorkSection: React.FC = () => {
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
-                          className="btn-dark-ghost text-xs py-2 px-4 cursor-pointer"
+                          className="inline-flex items-center gap-1.5 text-xs py-2 text-[#FAFAF7]/65 hover:text-[#FF9812] transition-colors cursor-pointer"
                         >
                           <GithubIcon className="w-3.5 h-3.5" />
                           CODE REPOSITORY
@@ -147,24 +137,13 @@ export const WorkSection: React.FC = () => {
 
                   {/* Right: Metrics + features panel */}
                   <div className="lg:col-span-5">
-                    <div
-                      className="p-6 rounded-2xl relative overflow-hidden"
-                      style={{
-                        background: 'rgba(255,152,18,0.04)',
-                        border: '1px solid rgba(255,152,18,0.14)',
-                      }}
-                    >
-                      {/* Glow accent */}
-                      <div
-                        className="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none"
-                        style={{ background: 'radial-gradient(circle, rgba(255,152,18,0.12) 0%, transparent 70%)' }}
-                      />
+                    <div className="lg:pl-5">
 
                       {/* Metrics */}
                       {project.metrics && (
                         <div className="grid grid-cols-3 gap-3 mb-5">
                           {project.metrics.map(({ label, value }) => (
-                            <div key={label} className="text-center p-2 rounded-xl bg-white/[0.02]">
+                            <div key={label} className="text-left py-2">
                               <p
                                 className="font-display text-2xl text-[#FF9812] leading-none"
                               >
@@ -178,7 +157,7 @@ export const WorkSection: React.FC = () => {
                         </div>
                       )}
 
-                      <div className="divider-orange mb-5" />
+                      <div className="h-px w-10 bg-[#FF9812]/60 mb-5" />
 
                       {/* Feature list */}
                       <ul className="space-y-2.5">
@@ -206,7 +185,7 @@ export const WorkSection: React.FC = () => {
               {/* Bottom hover bar */}
               <div
                 className="h-[2px] w-0 group-hover:w-full transition-all duration-500"
-                style={{ background: 'linear-gradient(90deg, #FF9812, #6ecf7f, transparent)' }}
+                style={{ background: 'linear-gradient(90deg, #FF9812, #B8BEC0, transparent)' }}
               />
             </article>
           </ScrollMaskReveal>
@@ -216,25 +195,25 @@ export const WorkSection: React.FC = () => {
       {/* ── INTERACTIVE APPLIED AI FEATURE SHOWCASE (GlassAiButton Refined Integration) ── */}
       <ScrollMaskReveal borderRadius="28px" delay={0.2}>
         <div
-          className="mt-14 p-8 md:p-10 rounded-3xl relative overflow-hidden"
+          className="mt-20 py-8 md:py-10 relative overflow-hidden border-y border-white/[0.08]"
           style={{
-            background: 'linear-gradient(135deg, rgba(16,18,22,0.85) 0%, rgba(10,12,14,0.95) 100%)',
-            border: '1px solid rgba(140,170,255,0.20)',
-            boxShadow: '0 25px 60px rgba(0,0,0,0.5)',
+            background: 'transparent',
+            border: 'none',
+            boxShadow: 'none',
           }}
         >
           {/* Subtle cosmic glow */}
           <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] rounded-full pointer-events-none"
             style={{
-              background: 'radial-gradient(ellipse, rgba(100,140,220,0.08) 0%, transparent 70%)',
+              background: 'radial-gradient(ellipse, rgba(255,152,18,0.07) 0%, transparent 70%)',
             }}
           />
 
           <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8">
             <div className="max-w-xl space-y-3 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-mono-code tracking-widest">
-                <Sparkles className="w-3 h-3 text-blue-400" />
+              <div className="inline-flex items-center gap-2 text-[#FF9812] text-[10px] font-mono-code tracking-widest">
+                <Sparkles className="w-3 h-3" />
                 <span>INTERACTIVE AI SHADER EXPERIMENT</span>
               </div>
               <h3 className="font-display text-2xl md:text-3xl text-white tracking-wide">
@@ -256,7 +235,7 @@ export const WorkSection: React.FC = () => {
               <div
                 className="relative rounded-full p-1"
                 style={{
-                  boxShadow: '0 0 40px rgba(100,140,240,0.18)',
+                  boxShadow: '0 0 40px rgba(255,152,18,0.10)',
                 }}
               >
                 <GlassAiButton

@@ -1,9 +1,46 @@
-import React, { useRef, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import React, { useRef, useMemo, useEffect, useLayoutEffect, useState } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Float } from '@react-three/drei';
 import * as THREE from 'three';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 
 // ──────────────────────────────────────────────────────────────────────────────
+const FilmVignetteShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    time: { value: 0 },
+    resolution: { value: new THREE.Vector2(1, 1) },
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform float time;
+    uniform vec2 resolution;
+    varying vec2 vUv;
+    float hash(vec2 p) {
+      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+    }
+    void main() {
+      vec4 color = texture2D(tDiffuse, vUv);
+      vec2 centered = (vUv - 0.5) * vec2(resolution.x / resolution.y, 1.0);
+      float vignette = smoothstep(0.34, 0.88, length(centered));
+      float grain = hash(gl_FragCoord.xy + vec2(time * 19.0)) - 0.5;
+      color.rgb *= 1.0 - vignette * 0.34;
+      color.rgb += grain * 0.012;
+      gl_FragColor = color;
+    }
+  `,
+};
 // Utility: build a smooth Catmull-Rom spline tube
 // ──────────────────────────────────────────────────────────────────────────────
 function makeTube(pts: THREE.Vector3[], segments = 64, radius = 0.1, radialSegs = 12) {
@@ -149,8 +186,8 @@ function LivingRoots({ scrollProgress }: { scrollProgress: React.MutableRefObjec
         new THREE.Vector3(0.4, -1.55, -0.18),
         new THREE.Vector3(1.75, -3.85, -1.15),
       ], 52, 0.155, 11),
-      color: '#2d5a36',
-      emissive: '#162a1c',
+      color: '#292b25',
+      emissive: '#141714',
       roughness: 0.88,
       metalness: 0.04,
       opacity: 0.78,
@@ -201,8 +238,8 @@ function LivingRoots({ scrollProgress }: { scrollProgress: React.MutableRefObjec
       ];
       list.push({
         geo: makeTube(pts, 30, 0.026, 6),
-        color: i % 2 === 0 ? '#FF9812' : '#6ecf7f',
-        emissive: i % 2 === 0 ? '#CC6A00' : '#2d5a36',
+        color: i % 2 === 0 ? '#FF9812' : '#62645d',
+        emissive: i % 2 === 0 ? '#CC6A00' : '#292b25',
         roughness: 0.32,
         metalness: 0.65,
         opacity: 0.60 + Math.sin(i) * 0.12,
@@ -281,7 +318,7 @@ function SporePollenField({
       pos[i * 3 + 1] = (Math.random() - 0.5) * 32;
       pos[i * 3 + 2] = (Math.random() - 0.5) * 16 - 1.5;
 
-      // 55% warm amber/gold pollen, 30% vibrant emerald, 15% deep red-orange
+      // Warm amber and soft-silver pollen keep the field inside the midnight palette.
       const rand = Math.random();
       if (rand > 0.45) {
         // Amber / gold
@@ -289,10 +326,10 @@ function SporePollenField({
         col[i * 3 + 1] = 0.60 + Math.random() * 0.28;
         col[i * 3 + 2] = 0.08 + Math.random() * 0.12;
       } else if (rand > 0.15) {
-        // Emerald green
-        col[i * 3]     = 0.38 + Math.random() * 0.18;
-        col[i * 3 + 1] = 0.85 + Math.random() * 0.15;
-        col[i * 3 + 2] = 0.45 + Math.random() * 0.22;
+        // Soft silver
+        col[i * 3]     = 0.62 + Math.random() * 0.16;
+        col[i * 3 + 1] = 0.66 + Math.random() * 0.16;
+        col[i * 3 + 2] = 0.68 + Math.random() * 0.16;
       } else {
         // Warm white-cream
         col[i * 3]     = 0.9 + Math.random() * 0.1;
@@ -376,7 +413,7 @@ function ForestFloor({ scrollProgress }: { scrollProgress: React.MutableRefObjec
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-1.5, 0.01, 0.5]}>
         <circleGeometry args={[1.6, 32]} />
         <meshBasicMaterial
-          color="#3ecf60"
+          color="#292b25"
           transparent
           opacity={0.05}
           blending={THREE.AdditiveBlending}
@@ -395,11 +432,11 @@ function SproutNodes({ scrollProgress }: { scrollProgress: React.MutableRefObjec
 
   const nodes = useMemo(() => [
     { pos: [-1.2, 0.5, 0.5], scale: 0.15, color: '#FF9812', em: '#FFB347', emI: 1.8 },
-    { pos: [0.5, -1.5, -0.2], scale: 0.12, color: '#6ecf7f', em: '#86efac', emI: 1.6 },
+    { pos: [0.5, -1.5, -0.2], scale: 0.12, color: '#666a64', em: '#aeb7ba', emI: 1.1 },
     { pos: [2.0, -0.3, 0.3], scale: 0.14, color: '#FF9812', em: '#FFD700', emI: 2.0 },
-    { pos: [-2.7, 2.6, -0.6], scale: 0.11, color: '#6ecf7f', em: '#4ade80', emI: 1.5 },
+    { pos: [-2.7, 2.6, -0.6], scale: 0.11, color: '#666a64', em: '#aeb7ba', emI: 1.1 },
     { pos: [1.9, -4.0, -1.3], scale: 0.13, color: '#FF9812', em: '#FF5500', emI: 1.7 },
-    { pos: [-2.5, -1.5, -1.4], scale: 0.10, color: '#6ecf7f', em: '#6ecf7f', emI: 1.4 },
+    { pos: [-2.5, -1.5, -1.4], scale: 0.10, color: '#666a64', em: '#aeb7ba', emI: 1.0 },
     { pos: [3.0, 1.5, -1.0], scale: 0.09, color: '#FFB347', em: '#FFD700', emI: 1.3 },
     { pos: [-0.5, -3.2, 0.2], scale: 0.11, color: '#FF9812', em: '#FFB347', emI: 1.5 },
   ], []);
@@ -472,7 +509,7 @@ function GodRays() {
   const rays = useMemo(() => [
     { pos: [2.0, 8, -4] as [number,number,number], rot: [0.3, 0, 0.25] as [number,number,number], color: '#FFB347', opacity: 0.025, height: 18 },
     { pos: [-1.5, 7.5, -3] as [number,number,number], rot: [0.2, 0, -0.2] as [number,number,number], color: '#FF9812', opacity: 0.018, height: 15 },
-    { pos: [0.5, 9, -6] as [number,number,number], rot: [0.1, 0, 0.05] as [number,number,number], color: '#6ecf7f', opacity: 0.012, height: 20 },
+    { pos: [0.5, 9, -6] as [number,number,number], rot: [0.1, 0, 0.05] as [number,number,number], color: '#62645d', opacity: 0.012, height: 20 },
   ], []);
 
   useFrame((state) => {
@@ -508,83 +545,141 @@ function GodRays() {
 // 7. SYLVA CAMERA CONTROLLER — Cinematic 5-phase scroll journey
 // ──────────────────────────────────────────────────────────────────────────────
 function SylvaCameraController({
-  mouseRef,
-  scrollProgress,
+  cameraRef,
 }: {
-  mouseRef: React.MutableRefObject<{ x: number; y: number }>;
-  scrollProgress: React.MutableRefObject<number>;
+  cameraRef: React.MutableRefObject<THREE.Camera | null>;
 }) {
-  useFrame((state) => {
-    const sp = scrollProgress.current;
-    const mx = mouseRef.current.x;
-    const my = mouseRef.current.y;
-
-    const dampX = mx * 0.72;
-    const dampY = -my * 0.60;
-
-    let targetX = dampX;
-    let targetY = dampY;
-    let targetZ = 5.5;
-    let lookY   = 0;
-
-    if (sp < 0.12) {
-      // 01 HERO — Majestic frontal, roots frame the portrait
-      targetZ = 5.5 + sp * 4.2;
-      targetY = -sp * 1.6 + dampY;
-      targetX = dampX * 0.82;
-      lookY   = -sp * 0.9;
-    } else if (sp < 0.30) {
-      // 02 ABOUT — Gliding right into the living grove
-      const p = (sp - 0.12) / 0.18;
-      targetX = 0.55 * Math.sin(p * Math.PI) + dampX * 0.72;
-      targetY = -1.3 - p * 1.1 + dampY;
-      targetZ = 6.0 + p * 1.3;
-      lookY   = -1.1 - p * 0.7;
-    } else if (sp < 0.52) {
-      // 03 WORK — Wide engineering showcase vista
-      const p = (sp - 0.30) / 0.22;
-      targetX = -0.45 * Math.sin(p * Math.PI) + dampX * 0.62;
-      targetY = -2.4 - p * 1.2 + dampY;
-      targetZ = 7.2 + p * 0.9;
-      lookY   = -2.4 - p * 0.85;
-    } else if (sp < 0.72) {
-      // 04 SKILLS + EXPERIENCE — Through the dense canopy
-      const p = (sp - 0.52) / 0.20;
-      targetX = 0.35 * Math.cos(p * Math.PI) + dampX * 0.52;
-      targetY = -3.6 - p * 1.5 + dampY;
-      targetZ = 7.6 - p * 0.65;
-      lookY   = -3.6 - p * 0.9;
-    } else {
-      // 05 ACHIEVEMENTS + CONTACT — Settling into warm sunset clearing
-      const p = Math.min((sp - 0.72) / 0.28, 1.0);
-      targetX = dampX * 0.42;
-      targetY = -5.1 - p * 1.3 + dampY;
-      targetZ = 6.4 - p * 0.7;
-      lookY   = -5.2 - p * 0.6;
-    }
-
-    // Smooth exponential lerp
-    state.camera.position.x += (targetX - state.camera.position.x) * 0.044;
-    state.camera.position.y += (targetY - state.camera.position.y) * 0.044;
-    state.camera.position.z += (targetZ - state.camera.position.z) * 0.044;
-    state.camera.lookAt(0, lookY, 0);
-  });
+  const camera = useThree((state) => state.camera);
+  const scene = useThree((state) => state.scene);
+  useEffect(() => {
+    cameraRef.current = camera;
+    return () => {
+      if (cameraRef.current === camera) cameraRef.current = null;
+      scene.traverse((object) => {
+        const mesh = object as THREE.Mesh;
+        mesh.geometry?.dispose();
+        const materials = Array.isArray(mesh.material) ? mesh.material : mesh.material ? [mesh.material] : [];
+        materials.forEach((material) => {
+          const visited = new WeakSet<object>();
+          const disposeTextures = (value: unknown) => {
+            if (!value || typeof value !== 'object' || visited.has(value)) return;
+            visited.add(value);
+            if (value instanceof THREE.Texture) {
+              value.dispose();
+              return;
+            }
+            Object.values(value).forEach(disposeTextures);
+          };
+          disposeTextures(material);
+          material.dispose();
+        });
+      });
+    };
+  }, [camera, cameraRef, scene]);
 
   return null;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+function CinematicPostProcessing() {
+  const { gl, scene, camera, size } = useThree();
+  const [enabled, setEnabled] = useState(() => window.innerWidth >= 768 && window.devicePixelRatio <= 2);
+  const composerRef = useRef<EffectComposer | null>(null);
+  const filmPassRef = useRef<ShaderPass | null>(null);
+  const reduceMotionRef = useRef(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  useEffect(() => {
+    let resizeTimer: number | undefined;
+    const updateCapability = () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => {
+        const next = window.innerWidth >= 768 && window.devicePixelRatio <= 2;
+        setEnabled((current) => current === next ? current : next);
+      }, 180);
+    };
+    const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updateMotionPreference = () => { reduceMotionRef.current = motionPreference.matches; };
+    window.addEventListener('resize', updateCapability, { passive: true });
+    window.visualViewport?.addEventListener('resize', updateCapability, { passive: true });
+    motionPreference.addEventListener('change', updateMotionPreference);
+    return () => {
+      window.clearTimeout(resizeTimer);
+      window.removeEventListener('resize', updateCapability);
+      window.visualViewport?.removeEventListener('resize', updateCapability);
+      motionPreference.removeEventListener('change', updateMotionPreference);
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!enabled) return;
+    const composer = new EffectComposer(gl);
+    composer.setPixelRatio(gl.getPixelRatio());
+    composer.addPass(new RenderPass(scene, camera));
+    composer.addPass(new UnrealBloomPass(new THREE.Vector2(size.width, size.height), 0.38, 0.32, 1.2));
+    const filmPass = new ShaderPass(FilmVignetteShader);
+    composer.addPass(filmPass);
+    composer.addPass(new OutputPass());
+    composer.setSize(size.width, size.height);
+    filmPass.uniforms.resolution.value.set(size.width * gl.getPixelRatio(), size.height * gl.getPixelRatio());
+    composerRef.current = composer;
+    filmPassRef.current = filmPass;
+
+    return () => {
+      composerRef.current = null;
+      filmPassRef.current = null;
+      composer.passes.forEach((pass) => pass.dispose());
+      composer.dispose();
+    };
+  }, [enabled, gl, scene, camera]);
+
+  useEffect(() => {
+    const composer = composerRef.current;
+    if (!composer) return;
+    composer.setSize(size.width, size.height);
+    filmPassRef.current?.uniforms.resolution.value.set(size.width * gl.getPixelRatio(), size.height * gl.getPixelRatio());
+  }, [gl, size.width, size.height, enabled]);
+
+  useFrame((state, delta) => {
+    const composer = composerRef.current;
+    if (!enabled || !composer) return;
+    if (!reduceMotionRef.current && filmPassRef.current) {
+      filmPassRef.current.uniforms.time.value += delta;
+    }
+    composer.render(delta);
+  }, enabled ? 1 : 0);
+
+  return null;
+}
 // 8. MAIN WORLDSCENE EXPORT
 // ──────────────────────────────────────────────────────────────────────────────
 export interface WorldSceneProps {
   scrollProgress: React.MutableRefObject<number>;
   mouseRef: React.MutableRefObject<{ x: number; y: number }>;
+  cameraRef: React.MutableRefObject<THREE.Camera | null>;
+  cameraFov: number;
 }
 
-export const WorldScene: React.FC<WorldSceneProps> = ({ scrollProgress, mouseRef }) => {
+export const WorldScene: React.FC<WorldSceneProps> = ({ scrollProgress, mouseRef, cameraRef, cameraFov }) => {
+  const [contextLost, setContextLost] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const contextHandlers = useRef<{ lost: (event: Event) => void; restored: () => void } | null>(null);
+
+  useEffect(() => () => {
+    const canvas = canvasRef.current;
+    const handlers = contextHandlers.current;
+    if (canvas && handlers) {
+      canvas.removeEventListener('webglcontextlost', handlers.lost);
+      canvas.removeEventListener('webglcontextrestored', handlers.restored);
+    }
+    canvasRef.current = null;
+    contextHandlers.current = null;
+  }, []);
+
   return (
-    <Canvas
-      camera={{ position: [0, 0, 5.5], fov: 46, near: 0.1, far: 120 }}
+    <div className="world-scene-root">
+      <div className={`world-scene-fallback${contextLost ? ' is-visible' : ''}`} aria-hidden="true" />
+      <Canvas
+      camera={{ position: [0, 0, 5.5], fov: cameraFov, near: 0.1, far: 120 }}
       gl={{
         antialias: true,
         alpha: true,
@@ -593,37 +688,52 @@ export const WorldScene: React.FC<WorldSceneProps> = ({ scrollProgress, mouseRef
         toneMappingExposure: 1.25,
       }}
       dpr={[1, 1.5]}
-      style={{ background: 'transparent' }}
+      onCreated={({ gl }) => {
+        gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        const canvas = gl.domElement;
+        const lost = (event: Event) => {
+          event.preventDefault();
+          setContextLost(true);
+        };
+        const restored = () => setContextLost(false);
+        canvas.addEventListener('webglcontextlost', lost);
+        canvas.addEventListener('webglcontextrestored', restored);
+        canvasRef.current = canvas;
+        contextHandlers.current = { lost, restored };
+      }}
+      style={{ background: 'transparent', position: 'relative', zIndex: 1, opacity: contextLost ? 0 : 1, transition: 'opacity 900ms ease' }}
     >
+      <CinematicPostProcessing />
+
       {/* ── Atmospheric Fog (native THREE.Fog via attach) ── */}
-      <fog attach="fog" args={['#0a0a06', 12, 55]} />
+      <fog attach="fog" args={['#111111', 12, 55]} />
 
       {/* ── Sylva Living World Lighting ── */}
       {/* Warm amber canopy key light */}
-      <ambientLight intensity={0.38} color="#f0d9a8" />
+      <ambientLight intensity={0.24} color="#c9c2b4" />
 
       {/* Sunbeam directional key */}
       <directionalLight
         position={[7, 12, 5]}
-        intensity={3.2}
-        color="#FFB347"
+        intensity={2.1}
+        color="#FF9812"
         castShadow={false}
       />
 
       {/* Emerald moss bounce from forest floor */}
-      <pointLight position={[-5, -3, 2]} intensity={2.0} color="#4ecf70" />
+      <pointLight position={[-5, -3, 2]} intensity={0.75} color="#77736a" />
 
       {/* Warm amber horizon floor glow */}
-      <pointLight position={[4, -8, 3]} intensity={3.0} color="#FF7800" />
+      <pointLight position={[4, -8, 3]} intensity={2.0} color="#FF9812" />
 
       {/* Cool blue-sky fill from behind */}
-      <directionalLight position={[-6, 5, -5]} intensity={0.6} color="#93c5fd" />
+      <directionalLight position={[-6, 5, -5]} intensity={0.35} color="#aeb9bd" />
 
       {/* Secondary warm fill from right */}
-      <pointLight position={[6, 2, 1]} intensity={1.2} color="#FFD070" />
+      <pointLight position={[6, 2, 1]} intensity={0.85} color="#FFB347" />
 
       {/* Deep forest shadow fill */}
-      <pointLight position={[0, -6, 0]} intensity={0.8} color="#FF6020" />
+      <pointLight position={[0, -6, 0]} intensity={0.55} color="#FF9812" />
 
       {/* ── Scene Objects ── */}
       {/* God ray shafts first (deepest) */}
@@ -645,7 +755,8 @@ export const WorldScene: React.FC<WorldSceneProps> = ({ scrollProgress, mouseRef
       <SporePollenField scrollProgress={scrollProgress} mouseRef={mouseRef} />
 
       {/* Cinematic camera controller */}
-      <SylvaCameraController mouseRef={mouseRef} scrollProgress={scrollProgress} />
-    </Canvas>
+      <SylvaCameraController cameraRef={cameraRef} />
+      </Canvas>
+    </div>
   );
 };

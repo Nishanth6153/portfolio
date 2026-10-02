@@ -21,8 +21,8 @@ export const AiExperienceSection: React.FC = () => {
       ref={sectionRef}
       id="ai"
       aria-labelledby="ai-heading"
-      className="relative w-full overflow-hidden"
-      style={{ background: '#0A0A0A', minHeight: '100svh' }}
+      className="viewport-height relative w-full overflow-hidden"
+      style={{ background: '#0A0A0A' }}
     >
       {/* ── Ambient background glow ── */}
       <div className="absolute inset-0 pointer-events-none">

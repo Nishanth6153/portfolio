@@ -15,7 +15,7 @@ export const CertificationsSection: React.FC = () => {
       <RevealOnScroll delay={0}>
         <div className="flex items-center gap-4 mb-14">
           <span className="section-badge">
-            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#6ecf7f' }} />
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#FF9812' }} />
             07 — INDUSTRY ACCREDITATION
           </span>
           <div className="divider-orange flex-1" />
@@ -82,7 +82,7 @@ export const CertificationsSection: React.FC = () => {
               <div
                 className="pt-4 border-t border-white/[0.08]"
               >
-                <p className="text-[9px] font-mono-code tracking-widest mb-3 text-[#6ecf7f]/80 uppercase">
+                <p className="text-[9px] font-mono-code tracking-widest mb-3 text-[#B8BEC0]/80 uppercase">
                   ACCREDITED COMPETENCIES
                 </p>
                 <div className="flex flex-wrap gap-1.5">

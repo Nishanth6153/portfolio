@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, FileText, ArrowUpRight } from 'lucide-react';
+import { Menu, X, FileText, ArrowUpRight, Volume2, VolumeX } from 'lucide-react';
 import { useScrollSpy } from '../../hooks/useScrollSpy';
+import { getAmbientSoundEnabled, setAmbientSound, useAmbientSoundEnabled } from '../../audio/ambientAudio';
 
 const navItems = [
   { id: 'about',       label: 'ABOUT' },
@@ -17,6 +18,8 @@ export const Navbar: React.FC = () => {
     'hero', 'about', 'work', 'experience', 'skills',
     'achievements', 'certifications', 'contact',
   ]);
+  const soundEnabled = useAmbientSoundEnabled();
+  const toggleSound = () => void setAmbientSound(!getAmbientSoundEnabled());
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 30);
@@ -97,8 +100,12 @@ export const Navbar: React.FC = () => {
 
         {/* Resume CTA */}
         <div className="hidden md:flex items-center gap-3">
+          <button type="button" onClick={toggleSound} aria-label={soundEnabled ? "Turn ambient sound off" : "Turn ambient sound on"} aria-pressed={soundEnabled} title={soundEnabled ? "Sound on" : "Sound off"} className="inline-flex items-center justify-center w-9 h-9 rounded-full transition-colors hover:text-[#FF9812] focus-visible:outline focus-visible:outline-1 focus-visible:outline-[#FF9812] focus-visible:outline-offset-2" style={{ color: soundEnabled ? "#FF9812" : "#B0A090" }}>
+            {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+          </button>
           <a
             href="/assets/Nishanth-G-Resume.pdf"
+            data-magnetic="true"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[12px] font-display tracking-widest transition-all duration-300 group"
@@ -161,9 +168,14 @@ export const Navbar: React.FC = () => {
               {item.label}
             </button>
           ))}
+          <button type="button" onClick={toggleSound} aria-label={soundEnabled ? "Turn ambient sound off" : "Turn ambient sound on"} aria-pressed={soundEnabled} className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-display tracking-widest" style={{ color: soundEnabled ? "#FF9812" : "#B0A090" }}>
+            {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+            SOUND {soundEnabled ? "ON" : "OFF"}
+          </button>
           <div className="pt-3 border-t" style={{ borderColor: 'rgba(255,152,18,0.15)' }}>
             <a
               href="/assets/Nishanth-G-Resume.pdf"
+            data-magnetic="true"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-between w-full px-4 py-3 rounded-xl font-display tracking-widest text-sm"

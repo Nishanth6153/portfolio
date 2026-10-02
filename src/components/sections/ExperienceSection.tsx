@@ -2,7 +2,7 @@ import React from 'react';
 import { Briefcase, Calendar, MapPin, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { experiences } from '../../data/experience';
 import { RevealOnScroll } from '../animations/RevealOnScroll';
-import { ScrollHeading, ScrollMaskReveal } from '../animations/ScrollTypography';
+import { ScrollHeading, ScrollMaskReveal, ScrollParagraph } from '../animations/ScrollTypography';
 
 export const ExperienceSection: React.FC = () => {
   return (
@@ -33,27 +33,17 @@ export const ExperienceSection: React.FC = () => {
           <span>INDUSTRY</span>
           <span className="text-[#FF9812]">EXPERIENCE.</span>
         </ScrollHeading>
-        <p className="text-sm font-mono-code text-[#FAFAF7]/50 mt-3 max-w-lg">
+        <ScrollParagraph className="text-sm font-mono-code text-[#FAFAF7]/50 mt-3 max-w-lg">
           Agile workflows, code optimization, systematic defect analysis, and cross-functional project execution.
-        </p>
+        </ScrollParagraph>
       </div>
 
       <div className="space-y-8">
         {experiences.map((exp, idx) => (
-          <ScrollMaskReveal key={exp.id} borderRadius="28px" delay={idx * 0.08}>
+          <ScrollMaskReveal key={exp.id} borderRadius="0px" delay={idx * 0.08}>
             <div
-              className="p-8 md:p-12 rounded-3xl relative overflow-hidden"
-              style={{
-                background: 'linear-gradient(145deg, rgba(20,20,20,0.85) 0%, rgba(12,12,12,0.95) 100%)',
-                border: '1px solid rgba(255,152,18,0.18)',
-                boxShadow: '0 20px 50px rgba(0,0,0,0.45)',
-              }}
+              className="py-8 md:py-10 border-y border-white/10 relative"
             >
-              {/* Corner accent */}
-              <div
-                className="absolute top-0 right-0 w-48 h-48 rounded-full pointer-events-none"
-                style={{ background: 'radial-gradient(circle, rgba(255,152,18,0.10) 0%, transparent 70%)' }}
-              />
 
               {/* Header */}
               <div
@@ -110,17 +100,16 @@ export const ExperienceSection: React.FC = () => {
                 className="mb-8 pt-6 space-y-4"
                 style={{ borderTop: '1px solid rgba(255,152,18,0.08)' }}
               >
-                <p className="text-[10px] font-mono-code tracking-widest text-[#6ecf7f]/80 uppercase">
+                <p className="text-[10px] font-mono-code tracking-widest text-[#B8BEC0]/80 uppercase">
                   KEY DELIVERABLES
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {exp.deliverables.map((item, i) => (
                     <div
                       key={i}
-                      className="p-3.5 rounded-xl flex items-start gap-2 text-xs text-[#FAFAF7]/70"
-                      style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)' }}
+                      className="py-2.5 border-b border-white/[0.06] flex items-start gap-2 text-xs text-[#FAFAF7]/70"
                     >
-                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[#6ecf7f]" />
+                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[#B8BEC0]" />
                       <span>{item}</span>
                     </div>
                   ))}

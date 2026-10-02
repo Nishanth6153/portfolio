@@ -15,8 +15,8 @@ export const SylvaHeroSection: React.FC = () => {
     <section
       id="sylva"
       aria-label="Living World — Creative Interlude"
-      className="relative w-full"
-      style={{ height: '100svh', minHeight: '600px' }}
+      className="viewport-fill relative w-full overflow-hidden"
+      style={{ minHeight: '600px' }}
     >
       {/* ── Full-screen SylvaHero iframe ── */}
       <div className="absolute inset-0 z-0">

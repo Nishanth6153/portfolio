@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useLayoutEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -26,14 +26,14 @@ export const ScrollHeading: React.FC<ScrollHeadingProps> = ({
   as: Component = 'h2',
   className = '',
   style,
-  stagger = 0.08,
+  stagger = 0.14,
   delay = 0,
   id,
   variant = 'perspective',
 }) => {
   const containerRef = useRef<HTMLElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = containerRef.current;
     if (!el || typeof window === 'undefined') return;
 
@@ -57,7 +57,7 @@ export const ScrollHeading: React.FC<ScrollHeadingProps> = ({
             clipPath: 'inset(0% 0 0 0)',
             y: 0,
             opacity: 1,
-            duration: 1.05,
+            duration: 1.2,
             delay,
             stagger,
             ease: 'power3.out',
@@ -84,7 +84,7 @@ export const ScrollHeading: React.FC<ScrollHeadingProps> = ({
             rotateX: 0,
             opacity: 1,
             filter: 'blur(0px)',
-            duration: 1.1,
+            duration: 1.2,
             delay,
             stagger,
             ease: 'power3.out',
@@ -128,6 +128,7 @@ export const ScrollHeading: React.FC<ScrollHeadingProps> = ({
     <Component
       ref={containerRef as any}
       id={id}
+      data-speed="0.9"
       className={`relative ${className}`}
       style={{ perspective: '1000px', ...style }}
     >
@@ -162,7 +163,7 @@ export const ScrollParagraph: React.FC<ScrollParagraphProps> = ({
 
   const rawText = text || (typeof children === 'string' ? children : '');
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = containerRef.current;
     if (!el || typeof window === 'undefined') return;
 
@@ -202,7 +203,7 @@ export const ScrollParagraph: React.FC<ScrollParagraphProps> = ({
 
   if (!rawText) {
     return (
-      <p ref={containerRef} className={className} style={style}>
+      <p ref={containerRef} data-speed="1.1" className={className} style={style}>
         {children}
       </p>
     );
@@ -213,6 +214,7 @@ export const ScrollParagraph: React.FC<ScrollParagraphProps> = ({
   return (
     <p
       ref={containerRef}
+      data-speed="1.1"
       className={`leading-relaxed ${className}`}
       style={style}
     >
@@ -256,7 +258,7 @@ export const ScrollMaskReveal: React.FC<ScrollMaskRevealProps> = ({
 }) => {
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = ref.current;
     if (!el || typeof window === 'undefined') return;
 
@@ -276,7 +278,7 @@ export const ScrollMaskReveal: React.FC<ScrollMaskRevealProps> = ({
           clipPath: `inset(0% 0 0 0 round ${borderRadius})`,
           y: 0,
           opacity: 1,
-          duration: 1.1,
+          duration: 1.2,
           delay,
           ease: 'power3.out',
           scrollTrigger: {
